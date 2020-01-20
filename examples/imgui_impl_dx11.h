@@ -21,3 +21,8 @@ IMGUI_IMPL_API void     ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data);
 // Use if you want to reset your rendering device without losing ImGui state.
 IMGUI_IMPL_API void     ImGui_ImplDX11_InvalidateDeviceObjects();
 IMGUI_IMPL_API bool     ImGui_ImplDX11_CreateDeviceObjects();
+
+//josh edit
+#include <d3d11.h>
+bool LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height);
+bool load_texture_from_memory(unsigned char const* buffer, int length, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height);

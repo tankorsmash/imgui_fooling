@@ -12,6 +12,9 @@
 #include <tchar.h>
 #include <memory>
 #include "ui.h"
+#include "stb_image.h"
+#include <fstream>
+#include <sstream>
 
 // Data
 static ID3D11Device*            g_pd3dDevice = NULL;
@@ -121,6 +124,146 @@ void prebuilt_imgui_demo(bool& show_demo_window, bool& show_another_window, ImVe
     ImGui::End();
 }
 
+unsigned char* create_bitmap()
+{
+    const int wh = 256;
+    const int w = wh, h = wh;
+    int x, y;
+    int r, g, b;
+
+    //int total_size = w*h;
+    unsigned char red[h][w];
+    unsigned char green[h][w];
+    unsigned char blue[h][w];
+    for (int h = 0; h < wh; h++) {
+        for (int w = 0; w < wh; w++) {
+            red[h][w] = 100;
+            green[h][w] = 42;
+            blue[h][w] = 200;
+        }
+    }
+    for (int i = 0; i < w; i++) {
+        red[i][2] = 255;
+        red[i][2] = 255;
+        red[i][2] = 255;
+    }
+
+    unsigned char *img = NULL;
+    int filesize = 54 + 3 * w*h;  //w is your image width, h is image height, both int
+
+    img = (unsigned char *)malloc(3 * w*h);
+    memset(img, 0, 3 * w*h);
+
+    for (int i = 0; i < w; i++)
+    {
+        for (int j = 0; j < h; j++)
+        {
+            x = i; y = (h - 1) - j;
+            //r = red  [i*h + j];// *255;
+            //g = green[i*h + j]; // * 255;
+            //b = blue [i*h + j]; // * 255;
+            r = red[i][j];// *255;
+            g = green[i][j];// *255;
+            b = blue[i][j];// *255;
+            if (r > 255) r = 255;
+            if (g > 255) g = 255;
+            if (b > 255) b = 255;
+            img[(x + y*w) * 3 + 2] = (unsigned char)(r);
+            img[(x + y*w) * 3 + 1] = (unsigned char)(g);
+            img[(x + y*w) * 3 + 0] = (unsigned char)(b);
+        }
+    }
+
+    unsigned char bmpfileheader[14] = {'B', 'M', 0, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0};
+    unsigned char bmpinfoheader[40] = {40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 24, 0};
+    unsigned char bmppad[3] = {0, 0, 0};
+
+    bmpfileheader[2] = static_cast<unsigned char>(filesize);
+    bmpfileheader[3] = static_cast<unsigned char>(filesize >> 8);
+    bmpfileheader[4] = static_cast<unsigned char>(filesize >> 16);
+    bmpfileheader[5] = static_cast<unsigned char>(filesize >> 24);
+
+    bmpinfoheader[4] = static_cast<unsigned char>(w);
+    bmpinfoheader[5] = static_cast<unsigned char>(w >> 8);
+    bmpinfoheader[6] = static_cast<unsigned char>(w >> 16);
+    bmpinfoheader[7] = static_cast<unsigned char>(w >> 24);
+    bmpinfoheader[8] = static_cast<unsigned char>(h);
+    bmpinfoheader[9] = static_cast<unsigned char>(h >> 8);
+    bmpinfoheader[10] = static_cast<unsigned char>(h >> 16);
+    bmpinfoheader[11] = static_cast<unsigned char>(h >> 24);
+
+    unsigned char* out_img = new unsigned char[200000]; //random size
+
+    int offset = 0;
+    for (int i = 0; i < 14; i++) {
+        out_img[i+offset] = bmpfileheader[i];
+    }
+    offset = 14;
+    for (int i = 0; i < 40; i++) {
+        out_img[i+offset] = bmpinfoheader[i];
+    }
+
+    //for (int row = 0; row < h; row++) {
+    //    for (int col = 0; col < w; col++) {
+    //        //auto val = img + (w*(h - y - 1) * 3);
+    //        auto val = &img[ ((h-row -1) + w*col) * 3];
+    //        int addr = (h*row + col * 3) + offset;
+    //        out_img[addr ] = *val;
+    //        out_img[addr ] = 255;
+    //        out_img[addr + 1] = *(val + 1);
+    //        out_img[addr + 2] = *(val + 2);
+    //    }
+
+    //    int addr = h*row + w + offset+2;
+    //    out_img[addr + 0] = 0;
+    //    out_img[addr + 1] = 0;
+    //    out_img[addr + 2] = 0;
+    //}
+
+    //theirs
+    for (int i = 0; i < w; i++)
+    {
+        for (int j = 0; j < h; j++)
+        {
+            x = i; y = (h - 1) - j;
+            r = red[i][j];// *255;
+            g = green[i][j];// *255;
+            b = blue[i][j];// *255;
+            if (r > 255) r = 255;
+            if (g > 255) g = 255;
+            if (b > 255) b = 255;
+            img[(x + y*w) * 3 + 2] = (unsigned char)(r);
+            img[(x + y*w) * 3 + 1] = (unsigned char)(g);
+            img[(x + y*w) * 3 + 0] = (unsigned char)(b);
+
+        }
+    }
+    FILE* f;
+    fopen_s(&f, "their_temp.bmp", "wb");
+    fwrite(bmpfileheader, 1, 14, f);
+    fwrite(bmpinfoheader, 1, 40, f);
+    for (int i = 0; i < h; i++)
+    {
+        fwrite(img + (w*(h - i - 1) * 3), 3, w, f);
+        fwrite(bmppad, 1, (4 - (w * 3) % 4) % 4, f);
+    }
+    long fpos = ftell(f);
+    fclose(f);
+
+    auto in_stream = std::ifstream("their_temp.bmp");
+    size_t chars_read;
+    if (!(in_stream.read((char*)out_img, fpos))) // read up to the size of the buffer
+    {
+        if (!in_stream.eof()) {
+            assert(false); // something went wrong while reading. Find out what and handle.
+        }
+    }
+    chars_read = in_stream.gcount(); // get amount of characters really read.
+
+    return out_img;
+
+}
+
 
 int main(int, char**)
 {
@@ -155,6 +298,39 @@ int main(int, char**)
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
+
+    //josh edit
+    int my_image_width = 0;
+    int my_image_height = 0;
+    ID3D11ShaderResourceView* my_texture = NULL;
+    //bool ret = LoadTextureFromFile("../../MyImage01.jpg", &my_texture, &my_image_width, &my_image_height);
+    //bool ret = LoadTextureFromFile("panel.png", &my_texture, &my_image_width, &my_image_height);
+
+    const int length = 200000;
+    unsigned char* buffer = create_bitmap();
+    //buffer[0] = 'B';
+    //buffer[1] = 'M';
+    //buffer[2] =  length;
+    //buffer[10] = 14;
+
+    ////actual data, pretty sure
+    //buffer[14] = 255;
+    //buffer[15] = 0;
+    //buffer[16] = 255;
+    bool ret = load_texture_from_memory(buffer, length, &my_texture, &my_image_width, &my_image_height);
+    if (!ret) {
+        const char* reason = stbi_failure_reason();
+
+        wchar_t wide_reason[256];
+        size_t retval;
+        mbsrtowcs_s(&retval, wide_reason, &reason, strlen(reason) + 1, nullptr);
+        wcscat_s(wide_reason, L"\n\0");
+        OutputDebugStringW(wide_reason);
+    }
+    IM_ASSERT(ret);
+
+
+
     // Load Fonts
     // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
     // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
@@ -171,7 +347,7 @@ int main(int, char**)
     //IM_ASSERT(font != NULL);
 
     // Our state
-    bool show_demo_window = false;
+    bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -204,6 +380,12 @@ int main(int, char**)
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {
             render_ui();
+            //josh edit
+            ImGui::Begin("DirectX11 Texture Test");
+            ImGui::Text("pointer = %p", my_texture);
+            ImGui::Text("size = %d x %d", my_image_width, my_image_height);
+            ImGui::Image((void*)my_texture, ImVec2((float)my_image_width, (float)my_image_height));
+            ImGui::End();
         }
 
         // 3. Show another simple window.

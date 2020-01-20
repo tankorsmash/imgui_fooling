@@ -30,6 +30,9 @@
     <ClInclude Include="imgui_stdafx.h">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">
