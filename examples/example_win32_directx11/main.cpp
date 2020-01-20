@@ -124,29 +124,16 @@ void prebuilt_imgui_demo(bool& show_demo_window, bool& show_another_window, ImVe
     ImGui::End();
 }
 
-unsigned char* create_bitmap()
+unsigned char* create_bitmap(const int width, unsigned char* red, unsigned char* green, unsigned char* blue)
 {
-    const int wh = 256;
-    const int w = wh, h = wh;
+    const int w = width, h = width;
     int x, y;
     int r, g, b;
 
+    auto get_index = [width](int x, int y) {
+        return x + width * y;
+    };
     //int total_size = w*h;
-    unsigned char red[h][w];
-    unsigned char green[h][w];
-    unsigned char blue[h][w];
-    for (int h = 0; h < wh; h++) {
-        for (int w = 0; w < wh; w++) {
-            red[h][w] = 100;
-            green[h][w] = 42;
-            blue[h][w] = 200;
-        }
-    }
-    for (int i = 0; i < w; i++) {
-        red[i][2] = 255;
-        red[i][2] = 255;
-        red[i][2] = 255;
-    }
 
     unsigned char *img = NULL;
     int filesize = 54 + 3 * w*h;  //w is your image width, h is image height, both int
@@ -159,12 +146,9 @@ unsigned char* create_bitmap()
         for (int j = 0; j < h; j++)
         {
             x = i; y = (h - 1) - j;
-            //r = red  [i*h + j];// *255;
-            //g = green[i*h + j]; // * 255;
-            //b = blue [i*h + j]; // * 255;
-            r = red[i][j];// *255;
-            g = green[i][j];// *255;
-            b = blue[i][j];// *255;
+            r = red[get_index(j,i)];
+            g = green[get_index(j,i)];
+            b = blue[get_index(j,i)];
             if (r > 255) r = 255;
             if (g > 255) g = 255;
             if (b > 255) b = 255;
@@ -203,32 +187,15 @@ unsigned char* create_bitmap()
         out_img[i+offset] = bmpinfoheader[i];
     }
 
-    //for (int row = 0; row < h; row++) {
-    //    for (int col = 0; col < w; col++) {
-    //        //auto val = img + (w*(h - y - 1) * 3);
-    //        auto val = &img[ ((h-row -1) + w*col) * 3];
-    //        int addr = (h*row + col * 3) + offset;
-    //        out_img[addr ] = *val;
-    //        out_img[addr ] = 255;
-    //        out_img[addr + 1] = *(val + 1);
-    //        out_img[addr + 2] = *(val + 2);
-    //    }
-
-    //    int addr = h*row + w + offset+2;
-    //    out_img[addr + 0] = 0;
-    //    out_img[addr + 1] = 0;
-    //    out_img[addr + 2] = 0;
-    //}
-
     //theirs
     for (int i = 0; i < w; i++)
     {
         for (int j = 0; j < h; j++)
         {
             x = i; y = (h - 1) - j;
-            r = red[i][j];// *255;
-            g = green[i][j];// *255;
-            b = blue[i][j];// *255;
+            r = red[get_index(j,i)];
+            g = green[get_index(j,i)];
+            b = blue[get_index(j,i)];
             if (r > 255) r = 255;
             if (g > 255) g = 255;
             if (b > 255) b = 255;
@@ -307,16 +274,26 @@ int main(int, char**)
     //bool ret = LoadTextureFromFile("panel.png", &my_texture, &my_image_width, &my_image_height);
 
     const int length = 200000;
-    unsigned char* buffer = create_bitmap();
-    //buffer[0] = 'B';
-    //buffer[1] = 'M';
-    //buffer[2] =  length;
-    //buffer[10] = 14;
 
-    ////actual data, pretty sure
-    //buffer[14] = 255;
-    //buffer[15] = 0;
-    //buffer[16] = 255;
+    const int width = 256;
+    const int h = width, w = width;
+    unsigned char red[h*w];
+    unsigned char green[h*w];
+    unsigned char blue[h*w];
+    for (int h = 0; h < width; h++) {
+        for (int w = 0; w < width; w++) {
+            red[w + width *  h] = 100;
+            green[w + width *  h] = 42;
+            blue[w + width *  h] = 200;
+        }
+    }
+    for (int i = 0; i < w; i++) {
+        red[i * width + 2] = 255;
+        red[i * width + 2] = 255;
+        red[i * width + 2] = 255;
+    }
+    unsigned char* buffer = create_bitmap(width,red, green, blue);
+
     bool ret = load_texture_from_memory(buffer, length, &my_texture, &my_image_width, &my_image_height);
     if (!ret) {
         const char* reason = stbi_failure_reason();
