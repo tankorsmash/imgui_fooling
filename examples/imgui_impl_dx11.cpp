@@ -34,6 +34,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "example_win32_directx11/stb_image.h"
+#include <fstream>
 bool LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height);
 
 // DirectX data
@@ -527,9 +528,10 @@ void create_dx11_texture(ID3D11ShaderResourceView** out_srv, int* out_width, int
     desc.ArraySize        = 1;
     desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count = 1;
-    desc.Usage            = D3D11_USAGE_DEFAULT;
+    //desc.Usage            = D3D11_USAGE_DEFAULT;
+    desc.Usage            = D3D11_USAGE_DYNAMIC; //joshedit so that they can be edited. if its default, it gets moved to gpu or something
     desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
-    desc.CPUAccessFlags   = 0;
+    desc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE ;
 
     ID3D11Texture2D *pTexture = NULL;
     D3D11_SUBRESOURCE_DATA subResource;
@@ -566,6 +568,202 @@ bool LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_sr
     stbi_image_free(image_data);
 
     return true;
+}
+
+unsigned char* create_bitmap2(const int width, unsigned char* red, unsigned char* green, unsigned char* blue)
+{
+    const int w = width, h = width;
+    int x, y;
+    int r, g, b;
+
+    auto get_index = [width](int x, int y) {
+        return x + width * y;
+    };
+    //int total_size = w*h;
+
+    unsigned char *img = NULL;
+    int filesize = 54 + 3 * w*h;  //w is your image width, h is image height, both int
+
+    img = (unsigned char *)malloc(3 * w*h);
+    memset(img, 0, 3 * w*h);
+
+    for (int i = 0; i < w; i++)
+    {
+        for (int j = 0; j < h; j++)
+        {
+            x = i; y = (h - 1) - j;
+            r = red[get_index(j,i)];
+            g = green[get_index(j,i)];
+            b = blue[get_index(j,i)];
+            if (r > 255) r = 255;
+            if (g > 255) g = 255;
+            if (b > 255) b = 255;
+            img[(x + y*w) * 3 + 2] = (unsigned char)(r);
+            img[(x + y*w) * 3 + 1] = (unsigned char)(g);
+            img[(x + y*w) * 3 + 0] = (unsigned char)(b);
+        }
+    }
+
+    unsigned char bmpfileheader[14] = {'B', 'M', 0, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0};
+    unsigned char bmpinfoheader[40] = {40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 24, 0};
+    unsigned char bmppad[3] = {0, 0, 0};
+
+    bmpfileheader[2] = static_cast<unsigned char>(filesize);
+    bmpfileheader[3] = static_cast<unsigned char>(filesize >> 8);
+    bmpfileheader[4] = static_cast<unsigned char>(filesize >> 16);
+    bmpfileheader[5] = static_cast<unsigned char>(filesize >> 24);
+
+    bmpinfoheader[4] = static_cast<unsigned char>(w);
+    bmpinfoheader[5] = static_cast<unsigned char>(w >> 8);
+    bmpinfoheader[6] = static_cast<unsigned char>(w >> 16);
+    bmpinfoheader[7] = static_cast<unsigned char>(w >> 24);
+    bmpinfoheader[8] = static_cast<unsigned char>(h);
+    bmpinfoheader[9] = static_cast<unsigned char>(h >> 8);
+    bmpinfoheader[10] = static_cast<unsigned char>(h >> 16);
+    bmpinfoheader[11] = static_cast<unsigned char>(h >> 24);
+
+    unsigned char* out_img = new unsigned char[200000]; //random size
+
+    int offset = 0;
+    for (int i = 0; i < 14; i++) {
+        out_img[i+offset] = bmpfileheader[i];
+    }
+    offset = 14;
+    for (int i = 0; i < 40; i++) {
+        out_img[i+offset] = bmpinfoheader[i];
+    }
+
+    //theirs
+    for (int i = 0; i < w; i++)
+    {
+        for (int j = 0; j < h; j++)
+        {
+            x = i; y = (h - 1) - j;
+            r = red[get_index(j,i)];
+            g = green[get_index(j,i)];
+            b = blue[get_index(j,i)];
+            if (r > 255) r = 255;
+            if (g > 255) g = 255;
+            if (b > 255) b = 255;
+            img[(x + y*w) * 3 + 2] = (unsigned char)(r);
+            img[(x + y*w) * 3 + 1] = (unsigned char)(g);
+            img[(x + y*w) * 3 + 0] = (unsigned char)(b);
+
+        }
+    }
+    FILE* f;
+    fopen_s(&f, "their_temp.bmp", "wb");
+    fwrite(bmpfileheader, 1, 14, f);
+    fwrite(bmpinfoheader, 1, 40, f);
+    for (int i = 0; i < h; i++)
+    {
+        fwrite(img + (w*(h - i - 1) * 3), 3, w, f);
+        fwrite(bmppad, 1, (4 - (w * 3) % 4) % 4, f);
+    }
+    long fpos = ftell(f);
+    fclose(f);
+
+    auto in_stream = std::ifstream("their_temp.bmp");
+    size_t chars_read;
+    if (!(in_stream.read((char*)out_img, fpos))) // read up to the size of the buffer
+    {
+        if (!in_stream.eof()) {
+            assert(false); // something went wrong while reading. Find out what and handle.
+        }
+    }
+    chars_read = in_stream.gcount(); // get amount of characters really read.
+
+    return out_img;
+
+}
+struct TextureData
+{
+    ID3D11ShaderResourceView* texture_id;
+    int image_width;
+    int image_height;
+};
+
+TextureData create_texture_from_memory2(unsigned char red[], unsigned char green[], unsigned char blue[], const int width)
+{
+        const int length = 200000;
+        auto result = TextureData{{}, 0, 0};
+        unsigned char* buffer2 = create_bitmap2(width, red, green, blue);
+        bool ret = load_texture_from_memory(buffer2, length, &result.texture_id, &result.image_width, &result.image_height);
+        if (!ret) {
+            const char* reason = stbi_failure_reason();
+
+            wchar_t wide_reason[256];
+            size_t retval;
+            mbsrtowcs_s(&retval, wide_reason, &reason, strlen(reason) + 1, nullptr);
+            wcscat_s(wide_reason, L"\n\0");
+            OutputDebugStringW(wide_reason);
+        }
+
+        update_data(&result);
+
+        return result;
+    };
+
+void update_data(void* texture_data_raw)
+{
+    struct TextureDataFAKE
+    {
+        ID3D11ShaderResourceView* texture_id;
+        int image_width;
+        int image_height;
+    };
+
+    TextureDataFAKE* texture_data = reinterpret_cast<TextureDataFAKE*>(texture_data_raw);
+
+
+    ID3D11ShaderResourceView* texture_data_texid = texture_data->texture_id;
+    D3D11_SHADER_RESOURCE_VIEW_DESC* desc_ptr= new D3D11_SHADER_RESOURCE_VIEW_DESC;
+    texture_data_texid->GetDesc(desc_ptr);
+    ID3D11Resource* resource = nullptr;
+    texture_data_texid->GetResource(&resource);
+
+
+    D3D11_MAPPED_SUBRESOURCE mappedResource = {nullptr};
+    auto result = g_pd3dDeviceContext->Map(resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if (result != 0) {
+        assert(false);
+    }
+
+    const int width = 256;
+    const int h = width, w = width;
+    unsigned char red[h*w];
+    unsigned char green[h*w];
+    unsigned char blue[h*w];
+    for (int h = 0; h < width; h++) {
+        for (int w = 0; w < width; w++) {
+            red[w + width *  h] = 100;
+            green[w + width *  h] = 42;
+            blue[w + width *  h] = 200;
+        }
+    }
+    for (int i = 0; i < w; i++) {
+        red[i * width + 2] = 255;
+        red[i * width + 2] = 255;
+        red[i * width + 2] = 255;
+    }
+    auto new_texture_data = create_texture_from_memory2(red, green, blue, width);
+
+    for (int i = 0; i < w; i++) {
+        red[i * width + 2] = 0;
+        red[i * width + 2] = 0;
+        red[i * width + 2] = 0;
+    }
+        unsigned char* buffer2 = create_bitmap2(width, red, green, blue);
+
+
+    char black_data[50];
+    memset(black_data, 0, 50);
+    memcpy_s(texture_data->texture_id, 200000, buffer2, sizeof(buffer2));
+    //memcpy_s(mappedResource.pData, 2000, black_data, 50);
+
+    g_pd3dDeviceContext->Unmap(resource, 0);
+    resource->Release();
+
 }
 
 // Simple helper function to load an image into a DX11 texture with common settings

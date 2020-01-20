@@ -55,7 +55,7 @@ HRESULT CreateDeviceD3D(HWND hWnd)
     sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
     UINT createDeviceFlags = 0;
-    //createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
     D3D_FEATURE_LEVEL featureLevel;
     const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
     if (D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext) != S_OK)
@@ -231,6 +231,35 @@ unsigned char* create_bitmap(const int width, unsigned char* red, unsigned char*
 
 }
 
+struct TextureData
+{
+    ID3D11ShaderResourceView* texture_id;
+    int image_width;
+    int image_height;
+};
+
+
+TextureData create_texture_from_memory(unsigned char red[], unsigned char green[], unsigned char blue[], const int width)
+{
+        const int length = 200000;
+        auto result = TextureData{{}, 0, 0};
+        unsigned char* buffer2 = create_bitmap(width, red, green, blue);
+        bool ret = load_texture_from_memory(buffer2, length, &result.texture_id, &result.image_width, &result.image_height);
+        if (!ret) {
+            const char* reason = stbi_failure_reason();
+
+            wchar_t wide_reason[256];
+            size_t retval;
+            mbsrtowcs_s(&retval, wide_reason, &reason, strlen(reason) + 1, nullptr);
+            wcscat_s(wide_reason, L"\n\0");
+            OutputDebugStringW(wide_reason);
+        }
+
+        update_data(&result);
+
+        return result;
+    };
+
 
 int main(int, char**)
 {
@@ -267,13 +296,8 @@ int main(int, char**)
 
 
     //josh edit
-    int my_image_width = 0;
-    int my_image_height = 0;
-    ID3D11ShaderResourceView* my_texture = NULL;
     //bool ret = LoadTextureFromFile("../../MyImage01.jpg", &my_texture, &my_image_width, &my_image_height);
     //bool ret = LoadTextureFromFile("panel.png", &my_texture, &my_image_width, &my_image_height);
-
-    const int length = 200000;
 
     const int width = 256;
     const int h = width, w = width;
@@ -292,19 +316,15 @@ int main(int, char**)
         red[i * width + 2] = 255;
         red[i * width + 2] = 255;
     }
-    unsigned char* buffer = create_bitmap(width,red, green, blue);
+    auto new_texture_data = create_texture_from_memory(red, green, blue, width);
 
-    bool ret = load_texture_from_memory(buffer, length, &my_texture, &my_image_width, &my_image_height);
-    if (!ret) {
-        const char* reason = stbi_failure_reason();
-
-        wchar_t wide_reason[256];
-        size_t retval;
-        mbsrtowcs_s(&retval, wide_reason, &reason, strlen(reason) + 1, nullptr);
-        wcscat_s(wide_reason, L"\n\0");
-        OutputDebugStringW(wide_reason);
+    for (int i = 0; i < w; i++) {
+        red[i * width + 2] = 0;
+        red[i * width + 2] = 0;
+        red[i * width + 2] = 0;
     }
-    IM_ASSERT(ret);
+    auto new_texture_data2 = create_texture_from_memory(red, green, blue, width);
+    //memcpy_s(new_texture_data2.texture_id, 100, black_data, 50);
 
 
 
@@ -359,9 +379,10 @@ int main(int, char**)
             render_ui();
             //josh edit
             ImGui::Begin("DirectX11 Texture Test");
-            ImGui::Text("pointer = %p", my_texture);
-            ImGui::Text("size = %d x %d", my_image_width, my_image_height);
-            ImGui::Image((void*)my_texture, ImVec2((float)my_image_width, (float)my_image_height));
+            ImGui::Text("pointer = %p", new_texture_data.texture_id);
+            ImGui::Text("size = %d x %d", new_texture_data.image_width, new_texture_data.image_height);
+            ImGui::Image((void*)new_texture_data.texture_id, ImVec2((float)new_texture_data.image_width, (float)new_texture_data.image_height));
+            ImGui::Image((void*)new_texture_data2.texture_id, ImVec2((float)new_texture_data2.image_width, (float)new_texture_data2.image_height));
             ImGui::End();
         }
 
