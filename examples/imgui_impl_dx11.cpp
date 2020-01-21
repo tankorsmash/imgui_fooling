@@ -699,7 +699,7 @@ TextureData create_texture_from_memory2(unsigned char red[], unsigned char green
             OutputDebugStringW(wide_reason);
         }
 
-        update_data(&result);
+        //update_data(&result);
 
         return result;
     };

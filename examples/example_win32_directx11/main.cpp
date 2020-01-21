@@ -239,26 +239,26 @@ struct TextureData
 };
 
 
-TextureData create_texture_from_memory(unsigned char red[], unsigned char green[], unsigned char blue[], const int width)
+TextureData* create_texture_from_memory(unsigned char red[], unsigned char green[], unsigned char blue[], const int width)
 {
-        const int length = 200000;
-        auto result = TextureData{{}, 0, 0};
-        unsigned char* buffer2 = create_bitmap(width, red, green, blue);
-        bool ret = load_texture_from_memory(buffer2, length, &result.texture_id, &result.image_width, &result.image_height);
-        if (!ret) {
-            const char* reason = stbi_failure_reason();
+    const int length = 200000;
+    auto result = new TextureData{{}, 0, 0};
+    unsigned char* buffer2 = create_bitmap(width, red, green, blue);
+    bool ret = load_texture_from_memory(buffer2, length, &result->texture_id, &result->image_width, &result->image_height);
+    if (!ret) {
+        const char* reason = stbi_failure_reason();
 
-            wchar_t wide_reason[256];
-            size_t retval;
-            mbsrtowcs_s(&retval, wide_reason, &reason, strlen(reason) + 1, nullptr);
-            wcscat_s(wide_reason, L"\n\0");
-            OutputDebugStringW(wide_reason);
-        }
+        wchar_t wide_reason[256];
+        size_t retval;
+        mbsrtowcs_s(&retval, wide_reason, &reason, strlen(reason) + 1, nullptr);
+        wcscat_s(wide_reason, L"\n\0");
+        OutputDebugStringW(wide_reason);
+    }
 
-        update_data(&result);
+    //update_data(&result);
 
-        return result;
-    };
+    return result;
+};
 
 
 int main(int, char**)
@@ -379,10 +379,14 @@ int main(int, char**)
             render_ui();
             //josh edit
             ImGui::Begin("DirectX11 Texture Test");
-            ImGui::Text("pointer = %p", new_texture_data.texture_id);
-            ImGui::Text("size = %d x %d", new_texture_data.image_width, new_texture_data.image_height);
-            ImGui::Image((void*)new_texture_data.texture_id, ImVec2((float)new_texture_data.image_width, (float)new_texture_data.image_height));
-            ImGui::Image((void*)new_texture_data2.texture_id, ImVec2((float)new_texture_data2.image_width, (float)new_texture_data2.image_height));
+            static TextureData* TEXTURE_DATA = new_texture_data;
+            if (ImGui::Button("Regenerate")) {
+                TEXTURE_DATA = create_texture_from_memory(red, green, blue, width);
+            }
+            ImGui::Text("pointer = %p", new_texture_data->texture_id);
+            ImGui::Text("size = %d x %d", new_texture_data->image_width, new_texture_data->image_height);
+            ImGui::Image((void*)TEXTURE_DATA->texture_id, ImVec2((float)TEXTURE_DATA->image_width, (float)TEXTURE_DATA->image_height));
+            ImGui::Image((void*)new_texture_data2->texture_id, ImVec2((float)new_texture_data2->image_width, (float)new_texture_data2->image_height));
             ImGui::End();
         }
 
