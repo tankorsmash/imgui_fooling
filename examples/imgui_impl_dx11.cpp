@@ -683,88 +683,6 @@ struct TextureData
     int image_height;
 };
 
-TextureData create_texture_from_memory2(unsigned char red[], unsigned char green[], unsigned char blue[], const int width)
-{
-        const int length = 200000;
-        auto result = TextureData{{}, 0, 0};
-        unsigned char* buffer2 = create_bitmap2(width, red, green, blue);
-        bool ret = load_texture_from_memory(buffer2, length, &result.texture_id, &result.image_width, &result.image_height);
-        if (!ret) {
-            const char* reason = stbi_failure_reason();
-
-            wchar_t wide_reason[256];
-            size_t retval;
-            mbsrtowcs_s(&retval, wide_reason, &reason, strlen(reason) + 1, nullptr);
-            wcscat_s(wide_reason, L"\n\0");
-            OutputDebugStringW(wide_reason);
-        }
-
-        //update_data(&result);
-
-        return result;
-    };
-
-void update_data(void* texture_data_raw)
-{
-    struct TextureDataFAKE
-    {
-        ID3D11ShaderResourceView* texture_id;
-        int image_width;
-        int image_height;
-    };
-
-    TextureDataFAKE* texture_data = reinterpret_cast<TextureDataFAKE*>(texture_data_raw);
-
-
-    ID3D11ShaderResourceView* texture_data_texid = texture_data->texture_id;
-    D3D11_SHADER_RESOURCE_VIEW_DESC* desc_ptr= new D3D11_SHADER_RESOURCE_VIEW_DESC;
-    texture_data_texid->GetDesc(desc_ptr);
-    ID3D11Resource* resource = nullptr;
-    texture_data_texid->GetResource(&resource);
-
-
-    D3D11_MAPPED_SUBRESOURCE mappedResource = {nullptr};
-    auto result = g_pd3dDeviceContext->Map(resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    if (result != 0) {
-        assert(false);
-    }
-
-    const int width = 256;
-    const int h = width, w = width;
-    unsigned char red[h*w];
-    unsigned char green[h*w];
-    unsigned char blue[h*w];
-    for (int h = 0; h < width; h++) {
-        for (int w = 0; w < width; w++) {
-            red[w + width *  h] = 100;
-            green[w + width *  h] = 42;
-            blue[w + width *  h] = 200;
-        }
-    }
-    for (int i = 0; i < w; i++) {
-        red[i * width + 2] = 255;
-        red[i * width + 2] = 255;
-        red[i * width + 2] = 255;
-    }
-    auto new_texture_data = create_texture_from_memory2(red, green, blue, width);
-
-    for (int i = 0; i < w; i++) {
-        red[i * width + 2] = 0;
-        red[i * width + 2] = 0;
-        red[i * width + 2] = 0;
-    }
-        unsigned char* buffer2 = create_bitmap2(width, red, green, blue);
-
-
-    char black_data[50];
-    memset(black_data, 0, 50);
-    memcpy_s(texture_data->texture_id, 200000, buffer2, sizeof(buffer2));
-    //memcpy_s(mappedResource.pData, 2000, black_data, 50);
-
-    g_pd3dDeviceContext->Unmap(resource, 0);
-    resource->Release();
-
-}
 
 // Simple helper function to load an image into a DX11 texture with common settings
 bool load_texture_from_memory(stbi_uc const* buffer, int length, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height)
@@ -772,7 +690,9 @@ bool load_texture_from_memory(stbi_uc const* buffer, int length, ID3D11ShaderRes
     // Load from disk into a raw RGBA buffer
     int image_width = 0;
     int image_height = 0;
-    unsigned char* image_data = stbi_load_from_memory(buffer, length, &image_width, &image_height, NULL, 4);
+    int channels = 0;
+    int desired_channels = 4;
+    unsigned char* image_data = stbi_load_from_memory(buffer, length, &image_width, &image_height, &channels, desired_channels);
     if (image_data == NULL)
         return false;
 

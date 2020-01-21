@@ -25,6 +25,8 @@ struct ColorData
     unsigned char* red;
     unsigned char* green;
     unsigned char* blue;
+
+    bool has_26 = false;
 };
 
 // Data
@@ -276,6 +278,38 @@ TextureData* create_texture_from_memory(unsigned char red[], unsigned char green
     return result;
 };
 
+ColorData create_voronoi_color_data(int color)
+{
+    ColorData color_data;
+    color_data.width = 256;
+    color_data.height = 256;
+    color_data.red = new unsigned char[color_data.height*color_data.width];
+    color_data.green = new unsigned char[color_data.height*color_data.width];
+    color_data.blue = new unsigned char[color_data.height*color_data.width];
+    for (int h = 0; h < color_data.width; h++) {
+        for (int w = 0; w < color_data.width; w++) {
+            color_data.red  [w + color_data.width *  h] = 100;
+            color_data.green[w + color_data.width *  h] = 42;
+            color_data.blue [w + color_data.width *  h] = 200;
+        }
+    }
+
+    bool& has_26 = color_data.has_26;
+    for (int i = 0; i < color_data.width; i++) {
+        int height = 2;
+        int color = rand() % 255;
+        if (color == 26) has_26 = true;
+        //color_data.red[i * color_data.width + height] = color;
+        color_data.green[i * color_data.width + height] = color;
+        //color_data.blue [i * color_data.width + height] = color+2;
+    }
+    std::wstringstream ss;
+    ss << "has the color: " << has_26 << std::endl;
+    OutputDebugStringW(ss.str().c_str());
+
+    return color_data;
+}
+
 int main(int, char**)
 {
     // Create application window
@@ -314,32 +348,34 @@ int main(int, char**)
     //bool ret = LoadTextureFromFile("../../MyImage01.jpg", &my_texture, &my_image_width, &my_image_height);
     //bool ret = LoadTextureFromFile("panel.png", &my_texture, &my_image_width, &my_image_height);
 
-    const int width = 256;
-    const int height = width;
-    const int h = width, w = width;
-    unsigned char red[h*w];
-    unsigned char green[h*w];
-    unsigned char blue[h*w];
-    for (int h = 0; h < width; h++) {
-        for (int w = 0; w < width; w++) {
-            red[w + width *  h] = 100;
-            green[w + width *  h] = 42;
-            blue[w + width *  h] = 200;
+    ColorData color_data;
+    color_data.width = 256;
+    color_data.height = 256;
+    const int h = color_data.height, w = color_data.width;
+    color_data.red = new unsigned char [h*w];
+    color_data.green = new unsigned char [h*w];
+    color_data.blue = new unsigned char [h*w];
+    for (int h = 0; h < color_data.width; h++) {
+        for (int w = 0; w < color_data.width; w++) {
+            color_data.red[w + color_data.width *  h] = 100;
+            color_data.green[w + color_data.width *  h] = 42;
+            color_data.blue[w + color_data.width *  h] = 200;
         }
     }
     for (int i = 0; i < w; i++) {
-        red[i * width + 2] = 255;
-        red[i * width + 2] = 255;
-        red[i * width + 2] = 255;
+        color_data.red[i * color_data.width + 2] = 255;
+        color_data.green[i * color_data.width + 2] = 255;
+        color_data.blue[i * color_data.width + 2] = 255;
     }
-    auto new_texture_data = create_texture_from_memory(red, green, blue, width, height);
+    //auto new_texture_data = create_texture_from_memory(red, green, blue, width, height);
+    auto new_texture_data = create_texture_from_memory(color_data);
 
-    for (int i = 0; i < w; i++) {
-        red[i * width + 2] = 0;
-        red[i * width + 2] = 0;
-        red[i * width + 2] = 0;
-    }
-    auto new_texture_data2 = create_texture_from_memory(red, green, blue, width, height);
+    //for (int i = 0; i < w; i++) {
+    //    red[i * width + 2] = 0;
+    //    red[i * width + 2] = 0;
+    //    red[i * width + 2] = 0;
+    //}
+    //auto new_texture_data2 = create_texture_from_memory(red, green, blue, width, height);
     //memcpy_s(new_texture_data2.texture_id, 100, black_data, 50);
 
 
@@ -396,13 +432,20 @@ int main(int, char**)
             //josh edit
             ImGui::Begin("DirectX11 Texture Test");
             static TextureData* TEXTURE_DATA = new_texture_data;
+            static int color = 0;
             if (ImGui::Button("Regenerate")) {
-                TEXTURE_DATA = create_texture_from_memory(red, green, blue, width, height);
+                //TEXTURE_DATA = create_texture_from_memory(red, green, blue, width, height);
+                std::wstringstream ss;
+                ss << "Color: " << color << std::endl;
+                OutputDebugStringW(ss.str().c_str()); //26 crashed once, 25 did too
+                ColorData color_data = create_voronoi_color_data(26);
+                color++;
+                TEXTURE_DATA = create_texture_from_memory(color_data);
             }
-            ImGui::Text("pointer = %p", new_texture_data->texture_id);
-            ImGui::Text("size = %d x %d", new_texture_data->image_width, new_texture_data->image_height);
+            ImGui::Text("pointer = %p", TEXTURE_DATA->texture_id);
+            ImGui::Text("size = %d x %d", TEXTURE_DATA->image_width, TEXTURE_DATA->image_height);
             ImGui::Image((void*)TEXTURE_DATA->texture_id, ImVec2((float)TEXTURE_DATA->image_width, (float)TEXTURE_DATA->image_height));
-            ImGui::Image((void*)new_texture_data2->texture_id, ImVec2((float)new_texture_data2->image_width, (float)new_texture_data2->image_height));
+            //ImGui::Image((void*)new_texture_data2->texture_id, ImVec2((float)new_texture_data2->image_width, (float)new_texture_data2->image_height));
             ImGui::End();
         }
 
