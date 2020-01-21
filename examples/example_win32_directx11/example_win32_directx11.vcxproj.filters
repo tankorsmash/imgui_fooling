@@ -33,6 +33,9 @@
     <ClInclude Include="stb_image.h">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="bitmap_image.hpp">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">
