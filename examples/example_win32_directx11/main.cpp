@@ -288,13 +288,12 @@ TextureData* create_texture_from_memory(unsigned char red[], unsigned char green
 
     create_dx11_texture(&result->texture_id, &result->image_width, &result->image_height, width, height, vector_buffer.data());
 
-    //update_data(&result);
+    //update_data(result);
 
     return result;
 };
 
-ColorData create_voronoi_color_data(int color)
-{
+ColorData create_voronoi_color_data(int color) {
     ColorData color_data;
     color_data.width = 256;
     color_data.height = 256;

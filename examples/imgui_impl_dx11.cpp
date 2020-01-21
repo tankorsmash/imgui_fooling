@@ -518,6 +518,79 @@ void ImGui_ImplDX11_NewFrame()
         ImGui_ImplDX11_CreateDeviceObjects();
 }
 
+void update_data(void* texture_data_raw)
+{
+    struct TextureDataFAKE
+    {
+        ID3D11ShaderResourceView* texture_id;
+        int image_width;
+        int image_height;
+    };
+
+    TextureDataFAKE* texture_data = reinterpret_cast<TextureDataFAKE*>(texture_data_raw);
+
+
+    ID3D11ShaderResourceView* texture_data_texid = texture_data->texture_id;
+    D3D11_SHADER_RESOURCE_VIEW_DESC* desc_ptr= new D3D11_SHADER_RESOURCE_VIEW_DESC;
+    texture_data_texid->GetDesc(desc_ptr);
+    ID3D11Resource* resource = nullptr;
+    texture_data_texid->GetResource(&resource);
+
+
+    D3D11_MAPPED_SUBRESOURCE mappedResource = {nullptr};
+    auto result = g_pd3dDeviceContext->Map(resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if (result != 0) {
+        assert(false);
+    }
+
+    char black_data[250];
+    memset(black_data, 255, 250);
+    //memcpy_s(texture_data->texture_id, 200000, buffer2, sizeof(buffer2));
+    //memcpy_s(mappedResource.pData, 2000, black_data, 50);
+
+    //NOTE this overwrites ('discards') the unchanged data, so I need to keep reference to that I think
+
+
+    BYTE* mappedData = reinterpret_cast<BYTE*>(mappedResource.pData);
+    //for(UINT i = 0; i < 256; ++i)
+    //{
+        memcpy(mappedData, black_data, 256);
+        mappedData += mappedResource.RowPitch;
+        //black_data += 256;
+    //}
+
+    //const int width = 256;
+    //const int h = width, w = width;
+    //unsigned char red[h*w];
+    //unsigned char green[h*w];
+    //unsigned char blue[h*w];
+    //for (int h = 0; h < width; h++) {
+    //    for (int w = 0; w < width; w++) {
+    //        red[w + width *  h] = 100;
+    //        green[w + width *  h] = 42;
+    //        blue[w + width *  h] = 200;
+    //    }
+    //}
+    //for (int i = 0; i < w; i++) {
+    //    red[i * width + 2] = 255;
+    //    red[i * width + 2] = 255;
+    //    red[i * width + 2] = 255;
+    //}
+    //auto new_texture_data = create_texture_from_memory2(red, green, blue, width);
+
+    //for (int i = 0; i < w; i++) {
+    //    red[i * width + 2] = 0;
+    //    red[i * width + 2] = 0;
+    //    red[i * width + 2] = 0;
+    //}
+    //    unsigned char* buffer2 = create_bitmap2(width, red, green, blue);
+
+
+    g_pd3dDeviceContext->Unmap(resource, 0);
+    resource->Release();
+
+}
+
 void create_dx11_texture(ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height, int image_width, int image_height, unsigned char* image_data)
 {
     // Create texture
@@ -529,11 +602,11 @@ void create_dx11_texture(ID3D11ShaderResourceView** out_srv, int* out_width, int
     desc.ArraySize        = 1;
     desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count = 1;
-    desc.Usage            = D3D11_USAGE_DEFAULT;
-    //desc.Usage            = D3D11_USAGE_DYNAMIC; //joshedit so that they can be edited. if its default, it gets moved to gpu or something
+    //desc.Usage            = D3D11_USAGE_DEFAULT;
+    desc.Usage            = D3D11_USAGE_DYNAMIC; //joshedit so that they can be edited. if its default, it gets moved to gpu or something
     desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
     desc.CPUAccessFlags   = 0;
-    //desc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE ;
+    desc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE ;
 
     ID3D11Texture2D *pTexture = NULL;
     D3D11_SUBRESOURCE_DATA subResource;
