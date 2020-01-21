@@ -9,6 +9,7 @@
 // https://github.com/ocornut/imgui
 
 #pragma once
+#include "example_win32_directx11/stb_image.h"
 
 struct ID3D11Device;
 struct ID3D11DeviceContext;
@@ -25,5 +26,5 @@ IMGUI_IMPL_API bool     ImGui_ImplDX11_CreateDeviceObjects();
 //josh edit
 #include <d3d11.h>
 bool LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height);
-bool load_texture_from_memory(unsigned char const* buffer, int length, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height);
+bool load_texture_from_memory(stbi_uc* buffer, int length, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height, int image_width, int image_height);
 void update_data(void* texture_data_raw);

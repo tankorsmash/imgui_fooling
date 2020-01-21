@@ -9153,6 +9153,8 @@ static void SettingsHandlerWindow_WriteAll(ImGuiContext* imgui_ctx, ImGuiSetting
 #define WIN32_LEAN_AND_MEAN
 #endif
 #ifndef __MINGW32__
+#define NOMINMAX
+
 #include <Windows.h>
 #else
 #include <windows.h>

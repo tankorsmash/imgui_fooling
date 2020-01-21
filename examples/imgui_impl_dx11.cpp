@@ -35,6 +35,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "example_win32_directx11/stb_image.h"
 #include <fstream>
+#include "example_win32_directx11/bitmap_image.hpp"
 bool LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height);
 
 // DirectX data
@@ -528,15 +529,18 @@ void create_dx11_texture(ID3D11ShaderResourceView** out_srv, int* out_width, int
     desc.ArraySize        = 1;
     desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count = 1;
-    //desc.Usage            = D3D11_USAGE_DEFAULT;
-    desc.Usage            = D3D11_USAGE_DYNAMIC; //joshedit so that they can be edited. if its default, it gets moved to gpu or something
+    desc.Usage            = D3D11_USAGE_DEFAULT;
+    //desc.Usage            = D3D11_USAGE_DYNAMIC; //joshedit so that they can be edited. if its default, it gets moved to gpu or something
     desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
-    desc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE ;
+    desc.CPUAccessFlags   = 0;
+    //desc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE ;
 
     ID3D11Texture2D *pTexture = NULL;
     D3D11_SUBRESOURCE_DATA subResource;
     subResource.pSysMem          = image_data;
-    subResource.SysMemPitch      = desc.Width * 4;
+    int num_channels = 4;
+    //int num_channels = 3; //joshedit from 4
+    subResource.SysMemPitch      = desc.Width * num_channels;
     subResource.SysMemSlicePitch = 0;
     g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
 
@@ -685,17 +689,20 @@ struct TextureData
 
 
 // Simple helper function to load an image into a DX11 texture with common settings
-bool load_texture_from_memory(stbi_uc const* buffer, int length, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height)
+bool load_texture_from_memory(stbi_uc* buffer, int length, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height, int image_width, int image_height)
 {
     // Load from disk into a raw RGBA buffer
-    int image_width = 0;
-    int image_height = 0;
+    int new_image_width = 0;
+    int new_image_height = 0;
     int channels = 0;
     int desired_channels = 4;
-    unsigned char* image_data = stbi_load_from_memory(buffer, length, &image_width, &image_height, &channels, desired_channels);
+    //unsigned char* image_data = nullptr;
+    unsigned char* image_data = stbi_load_from_memory(buffer, length, &new_image_width, &new_image_height, &channels, desired_channels);
     if (image_data == NULL)
         return false;
+    //auto image_data = buffer;
 
+    assert(image_data && "dont forget to init this");
     create_dx11_texture(out_srv, out_width, out_height, image_width, image_height, image_data);
     stbi_image_free(image_data);
 

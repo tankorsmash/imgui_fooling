@@ -7,6 +7,7 @@
 #include "imgui_impl_dx11.h"
 #include <d3d11.h>
 
+
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <tchar.h>
@@ -15,6 +16,7 @@
 #include "stb_image.h"
 #include <fstream>
 #include <sstream>
+#include "bitmap_image.hpp"
 
 
 //josh
@@ -259,10 +261,18 @@ TextureData* create_texture_from_memory(const ColorData& color_data)
 
 TextureData* create_texture_from_memory(unsigned char red[], unsigned char green[], unsigned char blue[], const int width, const int height)
 {
-    const int length = 200000;
     auto result = new TextureData{{}, 0, 0};
-    unsigned char* buffer2 = create_bitmap(width, height, red, green, blue);
-    bool ret = load_texture_from_memory(buffer2, length, &result->texture_id, &result->image_width, &result->image_height);
+    unsigned char* buffer = create_bitmap(width, height, red, green, blue);
+
+    auto image = new bitmap_image(width, height);
+    image->clear();
+    image->set_all_channels(0, 255, 0);
+    image->import_rgb(red, green, blue);
+    image->save_image("bitmap_image.bmp");
+    //unsigned char* buffer = image->data();
+
+    const int length = 200000;
+    bool ret = load_texture_from_memory(buffer, length, &result->texture_id, &result->image_width, &result->image_height, width, height);
     if (!ret) {
         const char* reason = stbi_failure_reason();
 
@@ -357,7 +367,7 @@ int main(int, char**)
     color_data.blue = new unsigned char [h*w];
     for (int h = 0; h < color_data.width; h++) {
         for (int w = 0; w < color_data.width; w++) {
-            color_data.red[w + color_data.width *  h] = 100;
+            color_data.red[w + color_data.width *  h] = 165;
             color_data.green[w + color_data.width *  h] = 42;
             color_data.blue[w + color_data.width *  h] = 200;
         }
