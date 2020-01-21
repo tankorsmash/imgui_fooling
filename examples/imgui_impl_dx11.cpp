@@ -542,7 +542,10 @@ void create_dx11_texture(ID3D11ShaderResourceView** out_srv, int* out_width, int
     //int num_channels = 3; //joshedit from 4
     subResource.SysMemPitch      = desc.Width * num_channels;
     subResource.SysMemSlicePitch = 0;
-    g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+    HRESULT error = g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+    if (error) {
+        __debugbreak();
+    }
 
     // Create texture view
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -551,7 +554,10 @@ void create_dx11_texture(ID3D11ShaderResourceView** out_srv, int* out_width, int
     srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels       = desc.MipLevels;
     srvDesc.Texture2D.MostDetailedMip = 0;
-    g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, out_srv);
+    HRESULT error2 = g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, out_srv);
+    if (error2) {
+        __debugbreak();
+    }
     pTexture->Release();
 
     *out_width  = image_width;

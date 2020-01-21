@@ -269,9 +269,25 @@ TextureData* create_texture_from_memory(unsigned char red[], unsigned char green
     image->set_all_channels(0, 255, 0);
     image->import_rgb(red, green, blue);
     image->save_image("bitmap_image.bmp");
-    //unsigned char* buffer = image->data();
+    unsigned char* image_buffer = image->data(); //only pixel data, pretty sure
+    //memcpy(buffer, image_buffer, 200000);
+    std::vector<unsigned char> vector_buffer{};
+    vector_buffer.reserve(300000);
+    for (int i = 0; i < 200000; i++) { //assuming 200k is size of buffer
+        if (i % 3 == 0) {
+            vector_buffer.push_back(buffer[i]);
+            vector_buffer.push_back(buffer[i+1]);
+            vector_buffer.push_back(buffer[i+2]);
+            vector_buffer.push_back(255); //alpha
+        }
+    }
 
+    //TextureData texture_data;
+    int out_width, out_height;
+    create_dx11_texture(&result->texture_id, &result->image_width, &result->image_height, width, height, vector_buffer.data());
     const int length = 200000;
+    if (false) {
+        
     bool ret = load_texture_from_memory(buffer, length, &result->texture_id, &result->image_width, &result->image_height, width, height);
     if (!ret) {
         const char* reason = stbi_failure_reason();
@@ -281,6 +297,8 @@ TextureData* create_texture_from_memory(unsigned char red[], unsigned char green
         mbsrtowcs_s(&retval, wide_reason, &reason, strlen(reason) + 1, nullptr);
         wcscat_s(wide_reason, L"\n\0");
         OutputDebugStringW(wide_reason);
+        int x = 1 + 1;
+    }
     }
 
     //update_data(&result);
