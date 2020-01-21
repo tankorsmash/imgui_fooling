@@ -262,7 +262,7 @@ TextureData* create_texture_from_memory(const ColorData& color_data)
 TextureData* create_texture_from_memory(unsigned char red[], unsigned char green[], unsigned char blue[], const int width, const int height)
 {
     auto result = new TextureData{{}, 0, 0};
-    unsigned char* buffer = create_bitmap(width, height, red, green, blue);
+    //unsigned char* buffer = create_bitmap(width, height, red, green, blue); //has an issue with pixel with 26 colors i think
 
     auto image = new bitmap_image(width, height);
     image->clear();
@@ -270,36 +270,22 @@ TextureData* create_texture_from_memory(unsigned char red[], unsigned char green
     image->import_rgb(red, green, blue);
     image->save_image("bitmap_image.bmp");
     unsigned char* image_buffer = image->data(); //only pixel data, pretty sure
-    //memcpy(buffer, image_buffer, 200000);
+
+    //create a 4bpp vector from the 3bpp source
     std::vector<unsigned char> vector_buffer{};
-    vector_buffer.reserve(300000);
-    for (int i = 0; i < 200000; i++) { //assuming 200k is size of buffer
+    auto buf_len = image->pixel_count() * (image->bytes_per_pixel()); //3bpp 
+    auto new_buf_len = image->pixel_count() * (image->bytes_per_pixel() + 1); //3bpp + 1 for alpha
+    vector_buffer.reserve(new_buf_len);
+    for (int i = 0; i < buf_len; i++) { //assuming 200k is size of buffer
         if (i % 3 == 0) {
-            vector_buffer.push_back(buffer[i]);
-            vector_buffer.push_back(buffer[i+1]);
-            vector_buffer.push_back(buffer[i+2]);
+            vector_buffer.push_back(image_buffer[i+2]);
+            vector_buffer.push_back(image_buffer[i+1]);
+            vector_buffer.push_back(image_buffer[i]);
             vector_buffer.push_back(255); //alpha
         }
     }
 
-    //TextureData texture_data;
-    int out_width, out_height;
     create_dx11_texture(&result->texture_id, &result->image_width, &result->image_height, width, height, vector_buffer.data());
-    const int length = 200000;
-    if (false) {
-        
-    bool ret = load_texture_from_memory(buffer, length, &result->texture_id, &result->image_width, &result->image_height, width, height);
-    if (!ret) {
-        const char* reason = stbi_failure_reason();
-
-        wchar_t wide_reason[256];
-        size_t retval;
-        mbsrtowcs_s(&retval, wide_reason, &reason, strlen(reason) + 1, nullptr);
-        wcscat_s(wide_reason, L"\n\0");
-        OutputDebugStringW(wide_reason);
-        int x = 1 + 1;
-    }
-    }
 
     //update_data(&result);
 
@@ -311,14 +297,14 @@ ColorData create_voronoi_color_data(int color)
     ColorData color_data;
     color_data.width = 256;
     color_data.height = 256;
-    color_data.red = new unsigned char[color_data.height*color_data.width];
+    color_data.red   = new unsigned char[color_data.height*color_data.width];
     color_data.green = new unsigned char[color_data.height*color_data.width];
-    color_data.blue = new unsigned char[color_data.height*color_data.width];
+    color_data.blue  = new unsigned char[color_data.height*color_data.width];
     for (int h = 0; h < color_data.width; h++) {
         for (int w = 0; w < color_data.width; w++) {
-            color_data.red  [w + color_data.width *  h] = 100;
-            color_data.green[w + color_data.width *  h] = 42;
-            color_data.blue [w + color_data.width *  h] = 200;
+            color_data.red  [w + color_data.width *  h] = 255;
+            color_data.green[w + color_data.width *  h] = 0;
+            color_data.blue [w + color_data.width *  h] = 0;
         }
     }
 
@@ -379,22 +365,21 @@ int main(int, char**)
     ColorData color_data;
     color_data.width = 256;
     color_data.height = 256;
-    const int h = color_data.height, w = color_data.width;
-    color_data.red = new unsigned char [h*w];
-    color_data.green = new unsigned char [h*w];
-    color_data.blue = new unsigned char [h*w];
-    for (int h = 0; h < color_data.width; h++) {
-        for (int w = 0; w < color_data.width; w++) {
-            color_data.red[w + color_data.width *  h] = 165;
-            color_data.green[w + color_data.width *  h] = 42;
-            color_data.blue[w + color_data.width *  h] = 200;
-        }
-    }
-    for (int i = 0; i < w; i++) {
-        color_data.red[i * color_data.width + 2] = 255;
-        color_data.green[i * color_data.width + 2] = 255;
-        color_data.blue[i * color_data.width + 2] = 255;
-    }
+    color_data.red   = new unsigned char [color_data.height*color_data.width];
+    color_data.green = new unsigned char [color_data.height*color_data.width];
+    color_data.blue  = new unsigned char [color_data.height*color_data.width];
+    //for (int h = 0; h < color_data.width; h++) {
+    //    for (int w = 0; w < color_data.width; w++) {
+    //        color_data.red  [w + color_data.width *  h] = 165;
+    //        color_data.green[w + color_data.width *  h] = 42;
+    //        color_data.blue [w + color_data.width *  h] = 200;
+    //    }
+    //}
+    //for (int i = 0; i < w; i++) {
+    //    color_data.red[i * color_data.width + 2] = 255;
+    //    color_data.green[i * color_data.width + 2] = 255;
+    //    color_data.blue[i * color_data.width + 2] = 255;
+    //}
     //auto new_texture_data = create_texture_from_memory(red, green, blue, width, height);
     auto new_texture_data = create_texture_from_memory(color_data);
 
