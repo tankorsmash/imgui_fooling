@@ -16,6 +16,17 @@
 #include <fstream>
 #include <sstream>
 
+
+//josh
+struct ColorData
+{
+    int width;
+    int height;
+    unsigned char* red;
+    unsigned char* green;
+    unsigned char* blue;
+};
+
 // Data
 static ID3D11Device*            g_pd3dDevice = NULL;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = NULL;
@@ -124,7 +135,7 @@ void prebuilt_imgui_demo(bool& show_demo_window, bool& show_another_window, ImVe
     ImGui::End();
 }
 
-unsigned char* create_bitmap(const int width, unsigned char* red, unsigned char* green, unsigned char* blue)
+unsigned char* create_bitmap(const int width, const int height, unsigned char* red, unsigned char* green, unsigned char* blue)
 {
     const int w = width, h = width;
     int x, y;
@@ -237,13 +248,18 @@ struct TextureData
     int image_width;
     int image_height;
 };
+TextureData* create_texture_from_memory(unsigned char red[], unsigned char green[], unsigned char blue[], const int width, const int height);
 
+TextureData* create_texture_from_memory(const ColorData& color_data)
+{
+    return create_texture_from_memory(color_data.red, color_data.green, color_data.blue, color_data.width, color_data.height);
+}
 
-TextureData* create_texture_from_memory(unsigned char red[], unsigned char green[], unsigned char blue[], const int width)
+TextureData* create_texture_from_memory(unsigned char red[], unsigned char green[], unsigned char blue[], const int width, const int height)
 {
     const int length = 200000;
     auto result = new TextureData{{}, 0, 0};
-    unsigned char* buffer2 = create_bitmap(width, red, green, blue);
+    unsigned char* buffer2 = create_bitmap(width, height, red, green, blue);
     bool ret = load_texture_from_memory(buffer2, length, &result->texture_id, &result->image_width, &result->image_height);
     if (!ret) {
         const char* reason = stbi_failure_reason();
@@ -259,7 +275,6 @@ TextureData* create_texture_from_memory(unsigned char red[], unsigned char green
 
     return result;
 };
-
 
 int main(int, char**)
 {
@@ -300,6 +315,7 @@ int main(int, char**)
     //bool ret = LoadTextureFromFile("panel.png", &my_texture, &my_image_width, &my_image_height);
 
     const int width = 256;
+    const int height = width;
     const int h = width, w = width;
     unsigned char red[h*w];
     unsigned char green[h*w];
@@ -316,14 +332,14 @@ int main(int, char**)
         red[i * width + 2] = 255;
         red[i * width + 2] = 255;
     }
-    auto new_texture_data = create_texture_from_memory(red, green, blue, width);
+    auto new_texture_data = create_texture_from_memory(red, green, blue, width, height);
 
     for (int i = 0; i < w; i++) {
         red[i * width + 2] = 0;
         red[i * width + 2] = 0;
         red[i * width + 2] = 0;
     }
-    auto new_texture_data2 = create_texture_from_memory(red, green, blue, width);
+    auto new_texture_data2 = create_texture_from_memory(red, green, blue, width, height);
     //memcpy_s(new_texture_data2.texture_id, 100, black_data, 50);
 
 
@@ -381,7 +397,7 @@ int main(int, char**)
             ImGui::Begin("DirectX11 Texture Test");
             static TextureData* TEXTURE_DATA = new_texture_data;
             if (ImGui::Button("Regenerate")) {
-                TEXTURE_DATA = create_texture_from_memory(red, green, blue, width);
+                TEXTURE_DATA = create_texture_from_memory(red, green, blue, width, height);
             }
             ImGui::Text("pointer = %p", new_texture_data->texture_id);
             ImGui::Text("size = %d x %d", new_texture_data->image_width, new_texture_data->image_height);
