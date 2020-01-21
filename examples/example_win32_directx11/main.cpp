@@ -310,12 +310,18 @@ ColorData create_voronoi_color_data(int color)
 
     bool& has_26 = color_data.has_26;
     for (int i = 0; i < color_data.width; i++) {
-        int height = 2;
+        int row = 2;
         int color = rand() % 255;
-        if (color == 26) has_26 = true;
-        //color_data.red[i * color_data.width + height] = color;
-        color_data.green[i * color_data.width + height] = color;
-        //color_data.blue [i * color_data.width + height] = color+2;
+
+        /* lookups (width will need to change, if non-square image TODO)*/
+        /* row: i + color_data.width * row */
+        /* col: i * color_data.width + column */
+
+        //if (color == 26) has_26 = true;
+        //color_data.red[i * color_data.width + column] = color;
+        //color_data.green[i * color_data.width + column] = color;
+        color_data.green[i + color_data.width * row] = color;
+        //color_data.blue [i * color_data.width + column] = color+2;
     }
     std::wstringstream ss;
     ss << "has the color: " << has_26 << std::endl;
@@ -448,10 +454,7 @@ int main(int, char**)
             static int color = 0;
             if (ImGui::Button("Regenerate")) {
                 //TEXTURE_DATA = create_texture_from_memory(red, green, blue, width, height);
-                std::wstringstream ss;
-                ss << "Color: " << color << std::endl;
-                OutputDebugStringW(ss.str().c_str()); //26 crashed once, 25 did too
-                ColorData color_data = create_voronoi_color_data(26);
+                ColorData color_data = create_voronoi_color_data(0);
                 color++;
                 TEXTURE_DATA = create_texture_from_memory(color_data);
             }
