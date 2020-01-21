@@ -17,6 +17,7 @@
 #include <fstream>
 #include <sstream>
 #include "bitmap_image.hpp"
+#include <array>
 
 
 //josh
@@ -300,32 +301,33 @@ ColorData create_voronoi_color_data(int color)
     color_data.red   = new unsigned char[color_data.height*color_data.width];
     color_data.green = new unsigned char[color_data.height*color_data.width];
     color_data.blue  = new unsigned char[color_data.height*color_data.width];
+
+    srand(12345);
+    std::vector<std::array<unsigned char, 2>> points;
+    int num_points = 20;
+    for (int i = 0; i < num_points; i++) {
+        std::array<unsigned char, 2> pt;
+        pt[0] = (unsigned char)(rand() % color_data.width);
+        pt[1] = (unsigned char)(rand() % color_data.height);
+        points.push_back(pt);
+    }
+
     for (int h = 0; h < color_data.width; h++) {
         for (int w = 0; w < color_data.width; w++) {
-            color_data.red  [w + color_data.width *  h] = 255;
-            color_data.green[w + color_data.width *  h] = 0;
-            color_data.blue [w + color_data.width *  h] = 0;
+            int min_dist = 9999;
+
+            for (auto& pt : points) {
+                int x_dist = std::pow(w - pt[0], 2);
+                int y_dist = std::pow(h - pt[1], 2);
+                double root = sqrt(x_dist + y_dist);
+                min_dist = std::min(min_dist, (int)root);
+            }
+
+            color_data.red  [w + color_data.width *  h] = min_dist;
+            color_data.green[w + color_data.width *  h] = min_dist;
+            color_data.blue [w + color_data.width *  h] = min_dist;
         }
     }
-
-    bool& has_26 = color_data.has_26;
-    for (int i = 0; i < color_data.width; i++) {
-        int row = 2;
-        int color = rand() % 255;
-
-        /* lookups (width will need to change, if non-square image TODO)*/
-        /* row: i + color_data.width * row */
-        /* col: i * color_data.width + column */
-
-        //if (color == 26) has_26 = true;
-        //color_data.red[i * color_data.width + column] = color;
-        //color_data.green[i * color_data.width + column] = color;
-        color_data.green[i + color_data.width * row] = color;
-        //color_data.blue [i * color_data.width + column] = color+2;
-    }
-    std::wstringstream ss;
-    ss << "has the color: " << has_26 << std::endl;
-    OutputDebugStringW(ss.str().c_str());
 
     return color_data;
 }
