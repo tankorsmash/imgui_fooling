@@ -293,10 +293,10 @@ TextureData* create_texture_from_memory(unsigned char red[], unsigned char green
     return result;
 };
 
-ColorData create_voronoi_color_data(int color) {
+ColorData create_voronoi_color_data(int width_height) {
     ColorData color_data;
-    color_data.width = 256;
-    color_data.height = 256;
+    color_data.width = width_height;
+    color_data.height = width_height;
     color_data.red   = new unsigned char[color_data.height*color_data.width];
     color_data.green = new unsigned char[color_data.height*color_data.width];
     color_data.blue  = new unsigned char[color_data.height*color_data.width];
@@ -311,8 +311,10 @@ ColorData create_voronoi_color_data(int color) {
         points.push_back(pt);
     }
 
-    for (int h = 0; h < color_data.width; h++) {
+    int total_pixels = 0;
+    for (int h = 0; h < color_data.height; h++) {
         for (int w = 0; w < color_data.width; w++) {
+            total_pixels++;
             int min_dist = 9999;
 
             for (auto& pt : points) {
@@ -322,11 +324,19 @@ ColorData create_voronoi_color_data(int color) {
                 min_dist = std::min(min_dist, (int)root);
             }
 
-            color_data.red  [w + color_data.width *  h] = min_dist;
-            color_data.green[w + color_data.width *  h] = min_dist;
-            color_data.blue [w + color_data.width *  h] = min_dist;
+            //convert to a 0-255 color
+            min_dist = ((float)min_dist) / (color_data.width) * 255;
+
+            int addr = w + color_data.width *  h;
+            color_data.red  [addr] = min_dist;
+            color_data.green[addr] = min_dist;
+            color_data.blue [addr] = min_dist;
         }
     }
+
+    std::wstringstream ss;
+    ss << "total pixels: " << total_pixels << std::endl;
+    OutputDebugStringW(ss.str().c_str());
 
     return color_data;
 }
@@ -370,8 +380,9 @@ int main(int, char**)
     //bool ret = LoadTextureFromFile("panel.png", &my_texture, &my_image_width, &my_image_height);
 
     ColorData color_data;
-    color_data.width = 256;
-    color_data.height = 256;
+    int width_height = 512;
+    color_data.width = width_height;
+    color_data.height = width_height;
     color_data.red   = new unsigned char [color_data.height*color_data.width];
     color_data.green = new unsigned char [color_data.height*color_data.width];
     color_data.blue  = new unsigned char [color_data.height*color_data.width];
@@ -455,7 +466,7 @@ int main(int, char**)
             static int color = 0;
             if (ImGui::Button("Regenerate")) {
                 //TEXTURE_DATA = create_texture_from_memory(red, green, blue, width, height);
-                ColorData color_data = create_voronoi_color_data(0);
+                ColorData color_data = create_voronoi_color_data(width_height);
                 color++;
                 TEXTURE_DATA = create_texture_from_memory(color_data);
             }
