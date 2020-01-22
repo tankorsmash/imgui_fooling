@@ -7,17 +7,20 @@
 #include "imgui_impl_dx11.h"
 #include <d3d11.h>
 
+#include "stb_image.h"
+#include "bitmap_image.hpp"
 
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <tchar.h>
 #include <memory>
-#include "ui.h"
-#include "stb_image.h"
 #include <fstream>
 #include <sstream>
-#include "bitmap_image.hpp"
 #include <array>
+#include <chrono>
+
+#include "ui.h"
+#include <thread>
 
 
 //josh
@@ -37,6 +40,13 @@ static ID3D11Device*            g_pd3dDevice = NULL;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = NULL;
 static IDXGISwapChain*          g_pSwapChain = NULL;
 static ID3D11RenderTargetView*  g_mainRenderTargetView = NULL;
+
+void my_print(const std::wstring& msg)
+{
+    std::wstringstream ss;
+    ss << msg << std::endl;
+    OutputDebugStringW(ss.str().c_str());
+}
 
 void CreateRenderTarget()
 {
@@ -293,6 +303,39 @@ TextureData* create_texture_from_memory(unsigned char red[], unsigned char green
     return result;
 };
 
+void set_pixel_color(ColorData& color_data, const std::vector<std::array<int, 2>>& points, int h, int w)
+{
+    int min_dist = 9999;
+
+    for (auto& pt : points) {
+        int x_dist  = std::pow(w - pt[0], 2);
+        int y_dist  = std::pow(h - pt[1], 2);
+        double root = sqrt(x_dist + y_dist);
+        min_dist    = std::min(min_dist, (int)root);
+    }
+
+    //convert to a 0-255 color
+    min_dist = ((float)min_dist) / (color_data.width) * 255;
+
+    int addr               = w + color_data.width *  h;
+    color_data.red  [addr] = min_dist;
+    color_data.green[addr] = min_dist;
+    color_data.blue [addr] = min_dist;
+}
+
+void set_row_colors(ColorData& color_data, const std::vector<std::array<int, 2>>& points, int h)
+{
+    for (int w = 0; w < color_data.width; w++) {
+
+        //std::thread* px_thread = new std::thread(&set_pixel_color, color_data, points, h, w);
+        //row_threads.push_back(px_thread);
+
+        set_pixel_color(color_data, points, h, w);
+    }
+
+    //my_print(L"done row "+std::to_wstring(h));
+}
+
 ColorData create_voronoi_color_data(int width_height) {
     ColorData color_data;
     color_data.width = width_height;
@@ -300,6 +343,8 @@ ColorData create_voronoi_color_data(int width_height) {
     color_data.red   = new unsigned char[color_data.height*color_data.width];
     color_data.green = new unsigned char[color_data.height*color_data.width];
     color_data.blue  = new unsigned char[color_data.height*color_data.width];
+
+    auto start = std::chrono::high_resolution_clock::now();
 
     srand(12345);
     std::vector<std::array<int, 2>> points;
@@ -311,31 +356,24 @@ ColorData create_voronoi_color_data(int width_height) {
         points.push_back(pt);
     }
 
-    int total_pixels = 0;
+    std::vector<std::thread*> row_threads;
+    row_threads.reserve(color_data.height);
     for (int h = 0; h < color_data.height; h++) {
-        for (int w = 0; w < color_data.width; w++) {
-            total_pixels++;
-            int min_dist = 9999;
-
-            for (auto& pt : points) {
-                int x_dist = std::pow(w - pt[0], 2);
-                int y_dist = std::pow(h - pt[1], 2);
-                double root = sqrt(x_dist + y_dist);
-                min_dist = std::min(min_dist, (int)root);
-            }
-
-            //convert to a 0-255 color
-            min_dist = ((float)min_dist) / (color_data.width) * 255;
-
-            int addr = w + color_data.width *  h;
-            color_data.red  [addr] = min_dist;
-            color_data.green[addr] = min_dist;
-            color_data.blue [addr] = min_dist;
-        }
+        std::thread* row_thread = new std::thread(&set_row_colors, color_data, points, h);
+        row_threads.push_back(row_thread);
     }
+    for (std::thread* row_thread : row_threads) {
+        row_thread->join();
+        delete row_thread;
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> elapsed = end - start; //seconds, I think
+    //std::chrono::duration<std::chrono::seconds> elapsed = std::chrono::duration_cast<std::chrono::seconds>(raw_elapsed);
+
 
     std::wstringstream ss;
-    ss << "total pixels: " << total_pixels << std::endl;
+    ss << "elapsed: " << elapsed.count() << std::endl;
+
     OutputDebugStringW(ss.str().c_str());
 
     return color_data;
