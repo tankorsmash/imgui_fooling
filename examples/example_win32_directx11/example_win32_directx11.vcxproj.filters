@@ -36,6 +36,9 @@
     <ClInclude Include="bitmap_image.hpp">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="FastNoise.h">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">
@@ -63,6 +66,9 @@
       <Filter>sources</Filter>
     </ClCompile>
     <ClCompile Include="imgui_stdafx.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="FastNoise.cpp">
       <Filter>sources</Filter>
     </ClCompile>
   </ItemGroup>
