@@ -302,12 +302,12 @@ ColorData create_voronoi_color_data(int width_height) {
     color_data.blue  = new unsigned char[color_data.height*color_data.width];
 
     srand(12345);
-    std::vector<std::array<unsigned char, 2>> points;
+    std::vector<std::array<int, 2>> points;
     int num_points = 20;
     for (int i = 0; i < num_points; i++) {
-        std::array<unsigned char, 2> pt;
-        pt[0] = (unsigned char)(rand() % color_data.width);
-        pt[1] = (unsigned char)(rand() % color_data.height);
+        std::array<int, 2> pt;
+        pt[0] = (int)(rand() % color_data.width);
+        pt[1] = (int)(rand() % color_data.height);
         points.push_back(pt);
     }
 
