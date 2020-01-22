@@ -336,7 +336,7 @@ void set_row_colors(ColorData& color_data, const std::vector<std::array<int, 2>>
     //my_print(L"done row "+std::to_wstring(h));
 }
 
-ColorData create_voronoi_color_data(int width_height) {
+ColorData create_voronoi_color_data(int width_height, int rng_seed) {
     ColorData color_data;
     color_data.width = width_height;
     color_data.height = width_height;
@@ -346,7 +346,7 @@ ColorData create_voronoi_color_data(int width_height) {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    srand(12345);
+    srand(rng_seed);
     std::vector<std::array<int, 2>> points;
     int num_points = 20;
     for (int i = 0; i < num_points; i++) {
@@ -464,6 +464,10 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != NULL);
 
+    static int rng_seed = 12345;
+    color_data = create_voronoi_color_data(width_height, rng_seed);
+    new_texture_data = create_texture_from_memory(color_data);
+
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
@@ -501,11 +505,12 @@ int main(int, char**)
             //josh edit
             ImGui::Begin("DirectX11 Texture Test");
             static TextureData* TEXTURE_DATA = new_texture_data;
-            static int color = 0;
+
+            ImGui::InputInt("Voronoi Seed", &rng_seed, 1, 100);
+
             if (ImGui::Button("Regenerate")) {
                 //TEXTURE_DATA = create_texture_from_memory(red, green, blue, width, height);
-                ColorData color_data = create_voronoi_color_data(width_height);
-                color++;
+                ColorData color_data = create_voronoi_color_data(width_height, rng_seed);
                 TEXTURE_DATA = create_texture_from_memory(color_data);
             }
             ImGui::Text("pointer = %p", TEXTURE_DATA->texture_id);
