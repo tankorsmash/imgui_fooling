@@ -358,16 +358,8 @@ void set_row_colors(ColorData& color_data, const std::vector<PointData*>& points
     //my_print(L"done row "+std::to_wstring(h));
 }
 
-ColorData create_voronoi_color_data(int width_height, int rng_seed) {
-    ColorData color_data;
-    color_data.width = width_height;
-    color_data.height = width_height;
-        color_data.red   = new unsigned char[color_data.height*color_data.width];
-    color_data.green = new unsigned char[color_data.height*color_data.width];
-    color_data.blue  = new unsigned char[color_data.height*color_data.width];
-
-    auto start = std::chrono::high_resolution_clock::now();
-
+const BYTE* get_noise_colors(int width_height, int rng_seed)
+{
     FastNoise noise;
     noise.SetSeed(rng_seed);
     noise.SetCellularDistance2Indicies(0, 1);
@@ -378,9 +370,12 @@ ColorData create_voronoi_color_data(int width_height, int rng_seed) {
     noise.SetCellularReturnType(FastNoise::Distance);
     noise.SetCellularDistanceFunction(FastNoise::CellularDistanceFunction::Euclidean);
 
-    for (int h = 0; h < color_data.height; h++) {
-        for (int w = 0; w < color_data.width; w++) {
-            int addr = w + color_data.width *  h;
+    BYTE* result = new BYTE[width_height*width_height];
+
+    int i = 0;
+    for (int h = 0; h < width_height; h++) {
+        for (int w = 0; w < width_height; w++) {
+            int addr = w + width_height*  h;
 
             auto val = noise.GetNoise(w, h);
             //noise.no
@@ -390,6 +385,33 @@ ColorData create_voronoi_color_data(int width_height, int rng_seed) {
             if (color != raw_color) {
                 int x = 1 + 1;
             }
+
+            result[i] = color;
+
+            i++;
+        }
+    }
+
+    return result;
+}
+
+ColorData create_voronoi_color_data(int width_height, int rng_seed) {
+    ColorData color_data;
+    color_data.width = width_height;
+    color_data.height = width_height;
+    color_data.red   = new unsigned char[color_data.height*color_data.width];
+    color_data.green = new unsigned char[color_data.height*color_data.width];
+    color_data.blue  = new unsigned char[color_data.height*color_data.width];
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    const BYTE* noise_data = get_noise_colors(width_height, rng_seed);
+
+    for (int h = 0; h < color_data.height; h++) {
+        for (int w = 0; w < color_data.width; w++) {
+            int addr = w + color_data.width *  h;
+
+            auto color = noise_data[addr];
             color_data.red[addr] = color;
             color_data.green[addr] = color;
             color_data.blue[addr] = color;
