@@ -584,7 +584,7 @@ int main(int, char**)
 
         edge_t incoming = start;
         do {
-            result.push_back(start);
+            result.push_back(incoming);
             const edge_t outgoing = nextHalfEdge(incoming);
             incoming = delaunator.halfedges[outgoing];
         } while (incoming != (edge_t)-1 && incoming != start);
@@ -596,6 +596,8 @@ int main(int, char**)
     //    const vertices = pointsOfTriangle(delaunay, t).map(p => points[p]);
     //    return circumcenter(vertices[0], vertices[1], vertices[2]);
     //}
+
+    //circumcenter of triangle
     auto triangleCenter = [pointsOfTriangle](std::vector<coord_t>& points, delaunator::Delaunator& delaunator, edge_t tri_id)
     {
         std::vector<edge_t> tri_points = pointsOfTriangle(delaunator, tri_id);
