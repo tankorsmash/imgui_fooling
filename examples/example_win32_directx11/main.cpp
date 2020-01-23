@@ -395,7 +395,8 @@ const BYTE* get_noise_colors(int width_height, int rng_seed)
     return result;
 }
 
-ColorData create_voronoi_color_data(int width_height, int rng_seed) {
+ColorData create_voronoi_color_data(int width_height, int rng_seed)
+{
     ColorData color_data;
     color_data.width = width_height;
     color_data.height = width_height;
