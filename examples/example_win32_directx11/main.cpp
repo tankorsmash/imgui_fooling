@@ -642,6 +642,8 @@ int main(int, char**)
     };
 
     delaunator::Delaunator delaunator2(points);
+    image.clear();
+    image.set_all_channels(255, 255, 255);
     forEachVoronoiCell(edge_points, delaunator2, draw_vertices);
     image.save_image("delaunator_output_vornoi.bmp");
 
