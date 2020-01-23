@@ -24,6 +24,7 @@
 #include "FastNoise.h"
 #include "imgui_internal.h"
 #include "delaunator.hpp"
+#include <set>
 
 
 //josh
@@ -401,9 +402,9 @@ const BYTE* get_noise_colors(int width_height, int rng_seed)
             int addr = w + width_height*  h;
 
             noise->SetCellularReturnType(FastNoise::Distance);
-            auto distance = noise->GetNoise(w, h);
+            FN_DECIMAL distance = noise->GetNoise(w, h);
             noise->SetCellularReturnType(FastNoise::CellValue);
-            auto raw_value = noise->GetNoise(w, h);
+            FN_DECIMAL raw_value = noise->GetNoise(w, h);
 
             //color
             auto raw_color = (distance * 255.0f);
@@ -518,9 +519,15 @@ int main(int, char**)
     int num_points = 20;
     int* raw_points = new int[num_points * 2];
     std::vector<double>  points{};
+
+    using coord_t = std::pair<unsigned int, unsigned int>;
+    std::vector<coord_t>  edge_points{};
     for (int i = 0; i < num_points; i++) {
-        points.push_back(rand() % color_data.width);
-        points.push_back(rand() % color_data.height);
+        int x = rand() % color_data.width;
+        int y = rand() % color_data.height;
+        points.push_back((double)x);
+        points.push_back((double)y);
+        edge_points.push_back(std::make_pair(x, y));
     }
 
     delaunator::Delaunator delaunator(points);
@@ -539,6 +546,105 @@ int main(int, char**)
         );
     }
     image.save_image("delaunator_output.bmp");
+
+
+    using edge_t = unsigned int;
+    using v_edge_t = std::vector<edge_t>;
+    auto next_half_edge = [](edge_t edge) { return (edge % 3 == 2) ? edge - 2 : edge + 1;  };
+
+    //function triangleOfEdge(e)  { return Math.floor(e / 3); }
+    auto triangle_of_edge = [](edge_t e) { return (edge_t)std::floor(((double)e) / 3.0); };
+
+    //function edgesOfTriangle(t) { return [3 * t, 3 * t + 1, 3 * t + 2]; }
+
+    //returns 3 edge IDs
+    auto edgesOfTriangle = [](edge_t t) {
+        return v_edge_t{3 * t, 3 * t + 1, 3 * t + 2};
+    };
+
+    //function pointsOfTriangle(delaunay, t) {
+    //    return edgesOfTriangle(t)
+    //        .map(e => delaunay.triangles[e]);
+    //}
+
+    //finds 3 points for a given triangle id
+    auto pointsOfTriangle = [edgesOfTriangle](const delaunator::Delaunator& delaunator, edge_t tri_id) {
+        auto edges = edgesOfTriangle(tri_id);
+
+        v_edge_t points;
+        auto find_tri_for_edge = [delaunator](edge_t e){ return delaunator.triangles[e]; };
+        std::transform(edges.begin(), edges.end(), std::back_inserter(points), find_tri_for_edge);
+
+        return points;
+    };
+
+    auto edgesAroundPoint = [next_half_edge](const delaunator::Delaunator& delaunator, edge_t edge) {
+        std::vector<edge_t> result;
+
+        edge_t incoming = edge;
+        do {
+            result.push_back(edge);
+            const edge_t outgoing = next_half_edge(incoming);
+            incoming = delaunator.halfedges[outgoing];
+        } while (incoming != -1 && incoming != edge);
+
+        return result;
+    };
+
+    //function triangleCenter(points, delaunay, t) {
+    //    const vertices = pointsOfTriangle(delaunay, t).map(p => points[p]);
+    //    return circumcenter(vertices[0], vertices[1], vertices[2]);
+    //}
+    auto triangleCenter = [pointsOfTriangle](std::vector<coord_t>& points, delaunator::Delaunator& delaunator, edge_t tri_id)
+    {
+        std::vector<edge_t> tri_points = pointsOfTriangle(delaunator, tri_id);
+        std::vector<coord_t> vertices{};
+        std::transform(tri_points.begin(), tri_points.end(), std::back_inserter(vertices), [&points](edge_t tri_point) {return points[tri_point]; });
+#define UNPACK2(pair) pair.first, pair.second
+        auto result = delaunator::circumcenter(UNPACK2(vertices[0]), UNPACK2(vertices[1]), UNPACK2(vertices[2]));
+        return std::pair<int, int>(UNPACK2(result));
+#undef UNPACK2
+    };
+
+    auto forEachVoronoiCell = [&](std::vector<coord_t> points, delaunator::Delaunator& delaunator, std::function<void(edge_t, std::vector<coord_t>)> callback) {
+
+        std::set<unsigned int> seen_points;
+        for (const int& edge : delaunator.triangles) {
+            unsigned int point = delaunator.triangles[next_half_edge(edge)];
+
+            if (std::find(seen_points.begin(), seen_points.end(), point) == seen_points.end()) {
+                seen_points.insert(point);
+                std::vector<edge_t> edges = edgesAroundPoint(delaunator, point);
+
+
+                std::vector<edge_t> triangles{};
+                std::transform(edges.begin(), edges.end(), std::back_inserter(triangles), triangle_of_edge);
+
+                std::vector<coord_t> vertices{};
+                std::transform(triangles.begin(), triangles.end(), std::back_inserter(vertices), [&triangleCenter, &points, &delaunator](edge_t tri_id) {
+                    auto result = triangleCenter(points, delaunator, tri_id);
+
+                    return result;
+                });
+
+                callback(point, vertices);
+            }
+        }
+    };
+
+    auto draw_vertices = [&drawer](edge_t point, std::vector<coord_t>& vertices) {
+        auto draw_a_to_b = [&drawer](coord_t& a, coord_t& b) {
+            drawer.line_segment(a.first, a.second, b.first, b.second);
+        };
+        draw_a_to_b(vertices[0], vertices[1]); //a b
+        draw_a_to_b(vertices[1], vertices[2]); //b c
+        draw_a_to_b(vertices[2], vertices[0]); //c a
+    };
+
+    delaunator::Delaunator delaunator2(points);
+    forEachVoronoiCell(edge_points, delaunator2, draw_vertices);
+    image.save_image("delaunator_output_vornoi.bmp");
+
 
     //for (int h = 0; h < color_data.width; h++) {
     //    for (int w = 0; w < color_data.width; w++) {
