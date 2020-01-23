@@ -49,6 +49,8 @@ static ID3D11DeviceContext*     g_pd3dDeviceContext = NULL;
 static IDXGISwapChain*          g_pSwapChain = NULL;
 static ID3D11RenderTargetView*  g_mainRenderTargetView = NULL;
 
+    static FastNoise* noise;
+
 template <typename T>
 const T& clamp( const T& v, const T& lo, const T& hi )
 {
@@ -360,37 +362,45 @@ void set_row_colors(ColorData& color_data, const std::vector<PointData*>& points
 
 const BYTE* get_noise_colors(int width_height, int rng_seed)
 {
-    FastNoise noise;
-    noise.SetSeed(rng_seed);
-    noise.SetCellularDistance2Indicies(0, 1);
-    noise.SetInterp(FastNoise::Hermite);
-    noise.SetNoiseType(FastNoise::Cellular);
-    noise.SetFrequency(0.02f);
-    noise.SetCellularJitter(0.4f);
-    noise.SetCellularReturnType(FastNoise::Distance);
-    noise.SetCellularDistanceFunction(FastNoise::CellularDistanceFunction::Euclidean);
-
-    BYTE* result = new BYTE[width_height*width_height];
+    BYTE* result = new BYTE[width_height*width_height*2];
 
     int i = 0;
+
+    FN_DECIMAL low_val = 99999;
+    FN_DECIMAL hi_val = -999999;
     for (int h = 0; h < width_height; h++) {
         for (int w = 0; w < width_height; w++) {
             int addr = w + width_height*  h;
 
-            auto val = noise.GetNoise(w, h);
-            //noise.no
-            int raw_color = (int)(val * 255.0f);
-            raw_color = clamp(raw_color, 0, 255);
+            noise->SetCellularReturnType(FastNoise::Distance);
+            auto distance = noise->GetNoise(w, h);
+            noise->SetCellularReturnType(FastNoise::CellValue);
+            auto raw_value = noise->GetNoise(w, h);
+
+            //color
+            auto raw_color = (distance * 255.0f);
+            raw_color = clamp(raw_color, 0.0f, 255.0f);
             BYTE color = (BYTE)raw_color;
             if (color != raw_color) {
                 int x = 1 + 1;
             }
 
-            result[i] = color;
+            //value
+            FN_DECIMAL value = clamp((int)((raw_value+1)/2*255), 0, 255);
+            low_val = std::min(low_val, value);
+            hi_val = std::max(hi_val, value);
 
+            result[i] = color;
             i++;
+            result[i] = (BYTE)value;
+            i++;
+
         }
     }
+
+    std::wstringstream ss;
+    ss << "lowest: " << low_val << " and highest: " << hi_val << std::endl;
+    my_print(ss.str());
 
     return result;
 }
@@ -410,12 +420,14 @@ ColorData create_voronoi_color_data(int width_height, int rng_seed)
 
     for (int h = 0; h < color_data.height; h++) {
         for (int w = 0; w < color_data.width; w++) {
-            int addr = w + color_data.width *  h;
+            int addr = (w + color_data.width * h) * 2;
 
             auto color = noise_data[addr];
-            color_data.red[addr] = color;
-            color_data.green[addr] = color;
-            color_data.blue[addr] = color;
+            auto value = noise_data[addr + 1];
+            color_data.red[addr/2] = color;
+            color_data.green[addr/2] = color;
+            color_data.blue[addr/2] = value;
+            //my_print(std::to_wstring(value));
         }
     }
 
@@ -517,8 +529,21 @@ int main(int, char**)
     //IM_ASSERT(font != NULL);
 
     static int rng_seed = 12345;
+
+    noise = new FastNoise;
+    noise->SetSeed(rng_seed);
+    noise->SetCellularDistance2Indicies(0, 1);
+    noise->SetInterp(FastNoise::Hermite);
+    noise->SetNoiseType(FastNoise::Cellular);
+    noise->SetFrequency(0.02f);
+    noise->SetCellularJitter(0.4f);
+    noise->SetCellularReturnType(FastNoise::Distance);
+    noise->SetCellularDistanceFunction(FastNoise::CellularDistanceFunction::Euclidean);
+
+
     color_data = create_voronoi_color_data(width_height, rng_seed);
     new_texture_data = create_texture_from_memory(color_data);
+
 
     // Our state
     bool show_demo_window = true;
@@ -572,12 +597,16 @@ int main(int, char**)
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             ImGui::LabelText("Mouse Pos:", "%f %f", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
             ImVec2 image_pos = window->DC.CursorPos;
-            ImVec2 mouse_pos = ImVec2(ImGui::GetIO().MousePos.x, image_pos.y - ImGui::GetIO().MousePos.y);
+            ImVec2 mouse_pos = ImVec2(ImGui::GetIO().MousePos.x - image_pos.x,  ImGui::GetIO().MousePos.y - image_pos.y);
             ImGui::Image((void*)TEXTURE_DATA->texture_id, ImVec2((float)TEXTURE_DATA->image_width, (float)TEXTURE_DATA->image_height));
             if (ImGui::IsItemHovered()) {
-                my_print(L"is hovering");
+                ImGui::LabelText("Mouse Pos", "%f %f", mouse_pos.x, mouse_pos.y);
+                noise->SetCellularReturnType(FastNoise::Distance);
+                float distance = noise->GetNoise(mouse_pos.x, mouse_pos.y);
+                noise->SetCellularReturnType(FastNoise::CellValue);
+                float cell_value = noise->GetNoise(mouse_pos.x, mouse_pos.y);
+                ImGui::LabelText("Distance, Id", "%f, %f", distance, (cell_value+1)/2*255);
             }
-            ImGui::LabelText("Mouse Pos:", "%f %f", mouse_pos.x, mouse_pos.y);
             ImGui::End();
         }
 
