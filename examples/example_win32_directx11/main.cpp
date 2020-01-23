@@ -418,32 +418,8 @@ ColorData create_voronoi_color_data(int width_height, int rng_seed) {
         }
     }
 
-    //srand(rng_seed);
-    //std::vector<PointData*> points;
-    //int num_points = 20;
-    //for (int i = 0; i < num_points; i++) {
-    //    std::array<int, 2> pt;
-    //    pt[0] = (int)(rand() % color_data.width);
-    //    pt[1] = (int)(rand() % color_data.height);
-    //    PointData* point_data = new PointData;
-    //    point_data->pos = pt;
-    //    point_data->color = i * 10;
-    //    points.push_back(point_data);
-    //}
-
-    //std::vector<std::thread*> row_threads;
-    //row_threads.reserve(color_data.height);
-    //for (int h = 0; h < color_data.height; h++) {
-    //    std::thread* row_thread = new std::thread(&set_row_colors, color_data, points, h);
-    //    row_threads.push_back(row_thread);
-    //}
-    //for (std::thread* row_thread : row_threads) {
-    //    row_thread->join();
-    //    delete row_thread;
-    //}
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> elapsed = end - start; //seconds, I think
-    //std::chrono::duration<std::chrono::seconds> elapsed = std::chrono::duration_cast<std::chrono::seconds>(raw_elapsed);
 
 
     std::wstringstream ss;
