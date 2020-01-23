@@ -23,6 +23,7 @@
 #include <thread>
 #include "FastNoise.h"
 #include "imgui_internal.h"
+#include "delaunator.hpp"
 
 
 //josh
@@ -280,14 +281,41 @@ struct TextureData
     int image_width;
     int image_height;
 };
-TextureData* create_texture_from_memory(unsigned char red[], unsigned char green[], unsigned char blue[], const int width, const int height);
+TextureData* create_texture_from_rgb_array(unsigned char red[], unsigned char green[], unsigned char blue[], const int width, const int height);
 
-TextureData* create_texture_from_memory(const ColorData& color_data)
+TextureData* create_texture_from_rgb_array(const ColorData& color_data)
 {
-    return create_texture_from_memory(color_data.red, color_data.green, color_data.blue, color_data.width, color_data.height);
+    return create_texture_from_rgb_array(color_data.red, color_data.green, color_data.blue, color_data.width, color_data.height);
 }
 
-TextureData* create_texture_from_memory(unsigned char red[], unsigned char green[], unsigned char blue[], const int width, const int height)
+TextureData* create_texture_data_from_image(bitmap_image* image)
+{
+    auto texture_data = new TextureData{{}, 0, 0};
+    unsigned char* image_buffer = image->data(); //only pixel data, pretty sure
+
+    int width = image->width();
+    int height = image->height();
+
+    //create a 4bpp vector from the 3bpp source
+    std::vector<unsigned char> vector_buffer{};
+    auto buf_len = image->pixel_count() * (image->bytes_per_pixel()); //3bpp 
+    auto new_buf_len = image->pixel_count() * (image->bytes_per_pixel() + 1); //3bpp + 1 for alpha
+    vector_buffer.reserve(new_buf_len);
+    for (int i = 0; i < buf_len; i++) { //assuming 200k is size of buffer
+        if (i % 3 == 0) {
+            vector_buffer.push_back(image_buffer[i+2]);
+            vector_buffer.push_back(image_buffer[i+1]);
+            vector_buffer.push_back(image_buffer[i]);
+            vector_buffer.push_back(255); //alpha
+        }
+    }
+
+    create_dx11_texture(&texture_data->texture_id, &texture_data->image_width, &texture_data->image_height, width, height, vector_buffer.data());
+
+    return texture_data;
+}
+
+TextureData* create_texture_from_rgb_array(unsigned char red[], unsigned char green[], unsigned char blue[], const int width, const int height)
 {
     auto result = new TextureData{{}, 0, 0};
     //unsigned char* buffer = create_bitmap(width, height, red, green, blue); //has an issue with pixel with 26 colors i think
@@ -381,9 +409,6 @@ const BYTE* get_noise_colors(int width_height, int rng_seed)
             auto raw_color = (distance * 255.0f);
             raw_color = clamp(raw_color, 0.0f, 255.0f);
             BYTE color = (BYTE)raw_color;
-            if (color != raw_color) {
-                int x = 1 + 1;
-            }
 
             //value
             FN_DECIMAL value = clamp((int)((raw_value+1)/2*255), 0, 255);
@@ -418,18 +443,18 @@ ColorData create_voronoi_color_data(int width_height, int rng_seed)
 
     const BYTE* noise_data = get_noise_colors(width_height, rng_seed);
 
-    for (int h = 0; h < color_data.height; h++) {
-        for (int w = 0; w < color_data.width; w++) {
-            int addr = (w + color_data.width * h) * 2;
+    //for (int h = 0; h < color_data.height; h++) {
+    //    for (int w = 0; w < color_data.width; w++) {
+    //        int addr = (w + color_data.width * h) * 2;
 
-            auto color = noise_data[addr];
-            auto value = noise_data[addr + 1];
-            color_data.red[addr/2] = color;
-            color_data.green[addr/2] = color;
-            color_data.blue[addr/2] = value;
-            //my_print(std::to_wstring(value));
-        }
-    }
+    //        auto color = noise_data[addr];
+    //        auto value = noise_data[addr + 1];
+    //        color_data.red[addr/2] = color;
+    //        color_data.green[addr/2] = color;
+    //        color_data.blue[addr/2] = value;
+    //        //my_print(std::to_wstring(value));
+    //    }
+    //}
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> elapsed = end - start; //seconds, I think
@@ -488,6 +513,33 @@ int main(int, char**)
     color_data.red   = new unsigned char [color_data.height*color_data.width];
     color_data.green = new unsigned char [color_data.height*color_data.width];
     color_data.blue  = new unsigned char [color_data.height*color_data.width];
+
+
+    int num_points = 20;
+    int* raw_points = new int[num_points * 2];
+    std::vector<double>  points{};
+    for (int i = 0; i < num_points; i++) {
+        points.push_back(rand() % color_data.width);
+        points.push_back(rand() % color_data.height);
+    }
+
+    delaunator::Delaunator delaunator(points);
+    auto image = bitmap_image(width_height, width_height);
+    image.clear();
+    image.set_all_channels(240, 240, 240);
+    image_drawer drawer(image);
+    for(std::size_t i = 0; i < delaunator.triangles.size(); i+=3) {
+        drawer.triangle(
+            delaunator.coords[2 * delaunator.triangles[i]],        //tx0
+            delaunator.coords[2 * delaunator.triangles[i] + 1],    //ty0
+            delaunator.coords[2 * delaunator.triangles[i + 1]],    //tx1
+            delaunator.coords[2 * delaunator.triangles[i + 1] + 1],//ty1
+            delaunator.coords[2 * delaunator.triangles[i + 2]],    //tx2
+            delaunator.coords[2 * delaunator.triangles[i + 2] + 1] //ty2
+        );
+    }
+    image.save_image("delaunator_output.bmp");
+
     //for (int h = 0; h < color_data.width; h++) {
     //    for (int w = 0; w < color_data.width; w++) {
     //        color_data.red  [w + color_data.width *  h] = 165;
@@ -501,7 +553,7 @@ int main(int, char**)
     //    color_data.blue[i * color_data.width + 2] = 255;
     //}
     //auto new_texture_data = create_texture_from_memory(red, green, blue, width, height);
-    auto new_texture_data = create_texture_from_memory(color_data);
+    TextureData* new_texture_data = create_texture_from_rgb_array(color_data);
 
     //for (int i = 0; i < w; i++) {
     //    red[i * width + 2] = 0;
@@ -542,7 +594,8 @@ int main(int, char**)
 
 
     color_data = create_voronoi_color_data(width_height, rng_seed);
-    new_texture_data = create_texture_from_memory(color_data);
+    new_texture_data = create_texture_from_rgb_array(color_data);
+    new_texture_data = create_texture_data_from_image(&image);
 
 
     // Our state
@@ -588,7 +641,7 @@ int main(int, char**)
             if (ImGui::Button("Regenerate")) {
                 //TEXTURE_DATA = create_texture_from_memory(red, green, blue, width, height);
                 ColorData color_data = create_voronoi_color_data(width_height, rng_seed);
-                TEXTURE_DATA = create_texture_from_memory(color_data);
+                TEXTURE_DATA = create_texture_from_rgb_array(color_data);
             }
             ImGui::Text("pointer = %p", TEXTURE_DATA->texture_id);
             ImGui::Text("size = %d x %d", TEXTURE_DATA->image_width, TEXTURE_DATA->image_height);

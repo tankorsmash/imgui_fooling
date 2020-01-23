@@ -39,6 +39,9 @@
     <ClInclude Include="FastNoise.h">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="delaunator.hpp">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">

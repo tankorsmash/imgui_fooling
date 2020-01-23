@@ -166,6 +166,7 @@
     <ClInclude Include="..\imgui_impl_dx11.h" />
     <ClInclude Include="..\imgui_impl_win32.h" />
     <ClInclude Include="bitmap_image.hpp" />
+    <ClInclude Include="delaunator.hpp" />
     <ClInclude Include="FastNoise.h" />
     <ClInclude Include="imgui_stdafx.h" />
     <ClInclude Include="stb_image.h" />
