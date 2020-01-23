@@ -22,6 +22,7 @@
 #include "ui.h"
 #include <thread>
 #include "FastNoise.h"
+#include "imgui_internal.h"
 
 
 //josh
@@ -567,8 +568,17 @@ int main(int, char**)
             }
             ImGui::Text("pointer = %p", TEXTURE_DATA->texture_id);
             ImGui::Text("size = %d x %d", TEXTURE_DATA->image_width, TEXTURE_DATA->image_height);
+
+
+            ImGuiWindow* window = ImGui::GetCurrentWindow();
+            ImGui::LabelText("Mouse Pos:", "%f %f", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
+            ImVec2 image_pos = window->DC.CursorPos;
+            ImVec2 mouse_pos = ImVec2(ImGui::GetIO().MousePos.x, image_pos.y - ImGui::GetIO().MousePos.y);
             ImGui::Image((void*)TEXTURE_DATA->texture_id, ImVec2((float)TEXTURE_DATA->image_width, (float)TEXTURE_DATA->image_height));
-            //ImGui::Image((void*)new_texture_data2->texture_id, ImVec2((float)new_texture_data2->image_width, (float)new_texture_data2->image_height));
+            if (ImGui::IsItemHovered()) {
+                my_print(L"is hovering");
+            }
+            ImGui::LabelText("Mouse Pos:", "%f %f", mouse_pos.x, mouse_pos.y);
             ImGui::End();
         }
 
