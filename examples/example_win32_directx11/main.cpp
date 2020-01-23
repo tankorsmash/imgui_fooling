@@ -549,10 +549,12 @@ int main(int, char**)
 
     using edge_t = unsigned int;
     using v_edge_t = std::vector<edge_t>;
-    auto next_half_edge = [](edge_t edge) { return (edge % 3 == 2) ? edge - 2 : edge + 1;  };
+    auto nextHalfEdge = [](edge_t edge) { return (edge % 3 == 2) ? edge - 2 : edge + 1;  };
 
     //function triangleOfEdge(e)  { return Math.floor(e / 3); }
-    auto triangle_of_edge = [](edge_t e) { return (edge_t)std::floor(((double)e) / 3.0); };
+    auto triangleOfEdge = [](edge_t e) {
+        return (edge_t)std::floor(((double)e) / 3.0);
+    };
 
     //function edgesOfTriangle(t) { return [3 * t, 3 * t + 1, 3 * t + 2]; }
 
@@ -577,15 +579,15 @@ int main(int, char**)
         return points;
     };
 
-    auto edgesAroundPoint = [next_half_edge](const delaunator::Delaunator& delaunator, edge_t edge) {
+    auto edgesAroundPoint = [nextHalfEdge](const delaunator::Delaunator& delaunator, edge_t start) {
         std::vector<edge_t> result;
 
-        edge_t incoming = edge;
+        edge_t incoming = start;
         do {
-            result.push_back(edge);
-            const edge_t outgoing = next_half_edge(incoming);
+            result.push_back(start);
+            const edge_t outgoing = nextHalfEdge(incoming);
             incoming = delaunator.halfedges[outgoing];
-        } while (incoming != -1 && incoming != edge);
+        } while (incoming != (edge_t)-1 && incoming != start);
 
         return result;
     };
@@ -598,18 +600,24 @@ int main(int, char**)
     {
         std::vector<edge_t> tri_points = pointsOfTriangle(delaunator, tri_id);
         std::vector<coord_t> vertices{};
-        std::transform(tri_points.begin(), tri_points.end(), std::back_inserter(vertices), [&points](edge_t tri_point) {return points[tri_point]; });
-#define UNPACK2(pair) pair.first, pair.second
-        auto result = delaunator::circumcenter(UNPACK2(vertices[0]), UNPACK2(vertices[1]), UNPACK2(vertices[2]));
-        return std::pair<int, int>(UNPACK2(result));
-#undef UNPACK2
+        std::transform(tri_points.begin(), tri_points.end(), std::back_inserter(vertices), [&points](edge_t tri_point) {
+            return points[tri_point];
+        });
+
+        auto result = delaunator::circumcenter(
+            vertices[0].first, vertices[0].second,
+            vertices[1].first, vertices[1].second,
+            vertices[2].first, vertices[2].second
+        );
+        return std::pair<int, int>(result.first, result.second);
     };
 
-    auto forEachVoronoiCell = [&](std::vector<coord_t> points, delaunator::Delaunator& delaunator, std::function<void(edge_t, std::vector<coord_t>)> callback) {
+    auto forEachVoronoiCell = [nextHalfEdge, edgesAroundPoint, triangleOfEdge, triangleCenter](std::vector<coord_t> points, delaunator::Delaunator& delaunator, std::function<void(edge_t, std::vector<coord_t>)> callback) {
 
         std::set<unsigned int> seen_points;
-        for (const int& edge : delaunator.triangles) {
-            unsigned int point = delaunator.triangles[next_half_edge(edge)];
+        //for (const int& edge : delaunator.triangles) {
+        for (int edge = 0; edge < delaunator.triangles.size(); edge++) {
+            unsigned int point = delaunator.triangles[nextHalfEdge(edge)];
 
             if (std::find(seen_points.begin(), seen_points.end(), point) == seen_points.end()) {
                 seen_points.insert(point);
@@ -617,7 +625,7 @@ int main(int, char**)
 
 
                 std::vector<edge_t> triangles{};
-                std::transform(edges.begin(), edges.end(), std::back_inserter(triangles), triangle_of_edge);
+                std::transform(edges.begin(), edges.end(), std::back_inserter(triangles), triangleOfEdge);
 
                 std::vector<coord_t> vertices{};
                 std::transform(triangles.begin(), triangles.end(), std::back_inserter(vertices), [&triangleCenter, &points, &delaunator](edge_t tri_id) {
@@ -635,9 +643,15 @@ int main(int, char**)
         auto draw_a_to_b = [&drawer](coord_t& a, coord_t& b) {
             drawer.line_segment(a.first, a.second, b.first, b.second);
         };
-        draw_a_to_b(vertices[0], vertices[1]); //a b
-        draw_a_to_b(vertices[1], vertices[2]); //b c
-        draw_a_to_b(vertices[2], vertices[0]); //c a
+
+        auto size = vertices.size();
+        for (unsigned int i = 0; i < size; i++) {
+            if (i != size - 1){
+                draw_a_to_b(vertices[i], vertices[i + 1]);
+            } else {
+                draw_a_to_b(vertices[i], vertices[0]);
+            }
+        }
     };
 
     delaunator::Delaunator delaunator2(points);
