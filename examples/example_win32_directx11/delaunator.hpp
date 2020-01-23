@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#pragma warning(push, 0) //disable all warnings josh edit (make sure warnings are popped back in)
+
 namespace delaunator {
 
 //@see https://stackoverflow.com/questions/33333363/built-in-mod-vs-custom-mod-function-improve-the-performance-of-modulus-op/33333636#33333636
@@ -583,3 +585,4 @@ void Delaunator::link(const std::size_t a, const std::size_t b) {
 }
 
 } //namespace delaunator
+#pragma warning(pop)

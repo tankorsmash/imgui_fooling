@@ -171,7 +171,7 @@ void prebuilt_imgui_demo(bool& show_demo_window, bool& show_another_window, ImVe
 
 unsigned char* create_bitmap(const int width, const int height, unsigned char* red, unsigned char* green, unsigned char* blue)
 {
-    const int w = width, h = width;
+    const int w = width, h = height;
     int x, y;
     int r, g, b;
 
@@ -270,7 +270,7 @@ unsigned char* create_bitmap(const int width, const int height, unsigned char* r
             assert(false); // something went wrong while reading. Find out what and handle.
         }
     }
-    chars_read = in_stream.gcount(); // get amount of characters really read.
+    chars_read = (size_t)in_stream.gcount(); // get amount of characters really read.
 
     return out_img;
 
@@ -302,7 +302,7 @@ TextureData* create_texture_data_from_image(bitmap_image* image)
     auto buf_len = image->pixel_count() * (image->bytes_per_pixel()); //3bpp 
     auto new_buf_len = image->pixel_count() * (image->bytes_per_pixel() + 1); //3bpp + 1 for alpha
     vector_buffer.reserve(new_buf_len);
-    for (int i = 0; i < buf_len; i++) { //assuming 200k is size of buffer
+    for (unsigned i = 0; i < buf_len; i++) { //assuming 200k is size of buffer
         if (i % 3 == 0) {
             vector_buffer.push_back(image_buffer[i+2]);
             vector_buffer.push_back(image_buffer[i+1]);
@@ -333,7 +333,7 @@ TextureData* create_texture_from_rgb_array(unsigned char red[], unsigned char gr
     auto buf_len = image->pixel_count() * (image->bytes_per_pixel()); //3bpp 
     auto new_buf_len = image->pixel_count() * (image->bytes_per_pixel() + 1); //3bpp + 1 for alpha
     vector_buffer.reserve(new_buf_len);
-    for (int i = 0; i < buf_len; i++) { //assuming 200k is size of buffer
+    for (unsigned int i = 0; i < buf_len; i++) { //assuming 200k is size of buffer
         if (i % 3 == 0) {
             vector_buffer.push_back(image_buffer[i+2]);
             vector_buffer.push_back(image_buffer[i+1]);
@@ -351,23 +351,23 @@ TextureData* create_texture_from_rgb_array(unsigned char red[], unsigned char gr
 
 void set_pixel_color(ColorData& color_data, const std::vector<PointData*>& points, int h, int w)
 {
-    int min_dist = 9999;
+    unsigned min_dist = 9999;
 
     PointData * const* closest_point = &points.front(); //always have one, no matter what
     for (auto& point_data : points) {
         const std::array<int, 2>& pt = point_data->pos;
-        int x_dist  = std::pow(w - pt[0], 2);
-        int y_dist  = std::pow(h - pt[1], 2);
+        int x_dist  = (int)std::floor(std::pow(w - pt[0], 2));
+        int y_dist  = (int)std::floor(std::pow(h - pt[1], 2));
         double root = sqrt(x_dist + y_dist);
 
         if (root < min_dist) {
             closest_point = &point_data;
         }
-        min_dist    = std::min(min_dist, (int)root);
+        min_dist    = std::min(min_dist, (unsigned int)root);
     }
 
     //convert to a 0-255 color
-    min_dist = ((float)min_dist) / (color_data.width) * 255;
+    min_dist = (float)(((float)(min_dist)) / (color_data.width) * 255);
 
     auto close_color = (*closest_point)->color;
     int addr               = w + color_data.width *  h;
@@ -389,7 +389,7 @@ void set_row_colors(ColorData& color_data, const std::vector<PointData*>& points
     //my_print(L"done row "+std::to_wstring(h));
 }
 
-const BYTE* get_noise_colors(int width_height, int rng_seed)
+const BYTE* get_noise_colors(int width_height, int /*rng_seed*/)
 {
     BYTE* result = new BYTE[width_height*width_height*2];
 
@@ -399,12 +399,12 @@ const BYTE* get_noise_colors(int width_height, int rng_seed)
     FN_DECIMAL hi_val = -999999;
     for (int h = 0; h < width_height; h++) {
         for (int w = 0; w < width_height; w++) {
-            int addr = w + width_height*  h;
+            //int addr = w + width_height*  h;
 
             noise->SetCellularReturnType(FastNoise::Distance);
-            FN_DECIMAL distance = noise->GetNoise(w, h);
+            FN_DECIMAL distance = noise->GetNoise(FN_DECIMAL(w), FN_DECIMAL(h));
             noise->SetCellularReturnType(FastNoise::CellValue);
-            FN_DECIMAL raw_value = noise->GetNoise(w, h);
+            FN_DECIMAL raw_value = noise->GetNoise(FN_DECIMAL(w), FN_DECIMAL(h));
 
             //color
             auto raw_color = (distance * 255.0f);
@@ -412,7 +412,7 @@ const BYTE* get_noise_colors(int width_height, int rng_seed)
             BYTE color = (BYTE)raw_color;
 
             //value
-            FN_DECIMAL value = clamp((int)((raw_value+1)/2*255), 0, 255);
+            FN_DECIMAL value = (FN_DECIMAL)clamp((int)((raw_value+1)/2*255), 0, 255);
             low_val = std::min(low_val, value);
             hi_val = std::max(hi_val, value);
 
@@ -431,7 +431,7 @@ const BYTE* get_noise_colors(int width_height, int rng_seed)
     return result;
 }
 
-ColorData create_voronoi_color_data(int width_height, int rng_seed)
+ColorData create_voronoi_color_data(int width_height, int /*rng_seed*/)
 {
     ColorData color_data;
     color_data.width = width_height;
@@ -442,7 +442,7 @@ ColorData create_voronoi_color_data(int width_height, int rng_seed)
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    const BYTE* noise_data = get_noise_colors(width_height, rng_seed);
+    //const BYTE* noise_data = get_noise_colors(width_height, rng_seed);
 
     //for (int h = 0; h < color_data.height; h++) {
     //    for (int w = 0; w < color_data.width; w++) {
@@ -517,7 +517,6 @@ int main(int, char**)
 
 
     int num_points = 20;
-    int* raw_points = new int[num_points * 2];
     std::vector<double>  points{};
 
     using coord_t = std::pair<unsigned int, unsigned int>;
