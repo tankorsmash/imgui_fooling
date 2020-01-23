@@ -641,7 +641,8 @@ int main(int, char**)
         }
     };
 
-    auto draw_vertices = [&drawer](edge_t point, std::vector<coord_t>& vertices) {
+    auto draw_vertices = [&drawer](edge_t cell_id, std::vector<coord_t>& vertices) {
+        drawer.pen_color(cell_id * 10, 0, 0);
         auto draw_a_to_b = [&drawer](coord_t& a, coord_t& b) {
             drawer.line_segment(a.first, a.second, b.first, b.second);
         };
