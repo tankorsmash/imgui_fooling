@@ -621,7 +621,7 @@ int main(int, char**)
 
             if (std::find(seen_points.begin(), seen_points.end(), point) == seen_points.end()) {
                 seen_points.insert(point);
-                std::vector<edge_t> edges = edgesAroundPoint(delaunator, point);
+                std::vector<edge_t> edges = edgesAroundPoint(delaunator, edge);
 
 
                 std::vector<edge_t> triangles{};
