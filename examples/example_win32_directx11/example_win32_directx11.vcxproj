@@ -169,6 +169,7 @@
     <ClInclude Include="delaunator.hpp" />
     <ClInclude Include="FastNoise.h" />
     <ClInclude Include="imgui_stdafx.h" />
+    <ClInclude Include="polygon_triangulate.hpp" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="ui.h" />
   </ItemGroup>
@@ -185,6 +186,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="polygon_triangulate.cpp" />
     <ClCompile Include="ui.cpp" />
   </ItemGroup>
   <ItemGroup>

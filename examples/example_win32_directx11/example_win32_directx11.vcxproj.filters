@@ -42,6 +42,9 @@
     <ClInclude Include="delaunator.hpp">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="polygon_triangulate.hpp">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">
@@ -72,6 +75,9 @@
       <Filter>sources</Filter>
     </ClCompile>
     <ClCompile Include="FastNoise.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="polygon_triangulate.cpp">
       <Filter>sources</Filter>
     </ClCompile>
   </ItemGroup>

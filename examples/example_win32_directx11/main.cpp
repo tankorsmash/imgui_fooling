@@ -1,4 +1,4 @@
-// dear imgui - standalone example application for DirectX 11
+﻿// dear imgui - standalone example application for DirectX 11
 // If you are new to dear imgui, see examples/README.txt and documentation at the top of imgui.cpp.
 
 #include "imgui_stdafx.h"
@@ -530,10 +530,11 @@ int main(int, char**)
     }
 
     delaunator::Delaunator delaunator(points);
-    auto image = bitmap_image(width_height, width_height);
-    image.clear();
-    image.set_all_channels(240, 240, 240);
-    image_drawer drawer(image);
+    //auto image = bitmap_image(width_height, width_height);
+    cartesian_canvas canvas(width_height, width_height);
+    canvas.image().clear();
+    canvas.image().set_all_channels(240, 240, 240);
+    image_drawer drawer(canvas.image());
     for(std::size_t i = 0; i < delaunator.triangles.size(); i+=3) {
         drawer.triangle(
             delaunator.coords[2 * delaunator.triangles[i]],        //tx0
@@ -544,7 +545,7 @@ int main(int, char**)
             delaunator.coords[2 * delaunator.triangles[i + 2] + 1] //ty2
         );
     }
-    image.save_image("delaunator_output.bmp");
+    canvas.image().save_image("delaunator_output.bmp");
 
 
     using edge_t = unsigned int;
@@ -641,14 +642,31 @@ int main(int, char**)
         }
     };
 
-    auto draw_vertices = [&drawer](edge_t cell_id, std::vector<coord_t>& vertices) {
+    auto draw_vertices = [&drawer, &canvas](edge_t cell_id, std::vector<coord_t>& vertices) {
         drawer.pen_color(cell_id * 10, 0, 0);
-        auto draw_a_to_b = [&drawer](coord_t& a, coord_t& b) {
-            drawer.line_segment(a.first, a.second, b.first, b.second);
+        auto draw_a_to_b = [&drawer, &canvas](coord_t& a, coord_t& b) {
+            canvas.line_segment(a.first, a.second, b.first, b.second);
+            //drawer.line_segment(a.first, a.second, b.first, b.second);
         };
 
         auto size = vertices.size();
-        for (unsigned int i = 0; i < size; i++) {
+        if (size <= 2) {
+            my_print(L"skipping: num vertices: " + std::to_wstring(size));
+            return;
+        }
+
+        //my_print(L"num vertices: "+std::to_wstring(size));
+        for (unsigned int i = 0; i < size; i+=1) {
+            auto lerp = [](edge_t val) {
+                return 0 + val*(512-0);
+            };
+
+            //canvas.line_segment(lerp(a.first)-0.5, lerp(a.second)-0.5, lerp(b.first)-0.5, lerp(b.second)-0.5);
+            //canvas.fill_triangle(
+            //    vertices[i].first, vertices[i].second,
+            //    vertices[i + 1].first, vertices[i + 1].second,
+            //    vertices[i + 2].first, vertices[i + 2].second
+            //);
             if (i != size - 1){
                 draw_a_to_b(vertices[i], vertices[i + 1]);
             } else {
@@ -658,10 +676,10 @@ int main(int, char**)
     };
 
     delaunator::Delaunator delaunator2(points);
-    image.clear();
-    image.set_all_channels(255, 255, 255);
+    canvas.image().clear();
+    canvas.image().set_all_channels(255, 255, 255);
     forEachVoronoiCell(edge_points, delaunator2, draw_vertices);
-    image.save_image("delaunator_output_vornoi.bmp");
+    canvas.image().save_image("delaunator_output_vornoi.bmp");
 
 
     //for (int h = 0; h < color_data.width; h++) {
@@ -719,7 +737,7 @@ int main(int, char**)
 
     color_data = create_voronoi_color_data(width_height, rng_seed);
     new_texture_data = create_texture_from_rgb_array(color_data);
-    new_texture_data = create_texture_data_from_image(&image);
+    new_texture_data = create_texture_data_from_image(&canvas.image());
 
 
     // Our state
