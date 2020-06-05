@@ -28,6 +28,8 @@
 #include "delaunator.hpp"
 #include <set>
 
+#define BEND(what) what.begin(), what.end()
+
 using coord_t = std::pair<unsigned int, unsigned int>;
 static int rng_seed = 12345;
     using edge_t = size_t;
@@ -894,17 +896,17 @@ int main(int, char**)
             auto next_edge = nextHalfEdge(edge);
             unsigned int triangle_id = delaunator.triangles[next_edge];
 
-            if (std::find(seen_points.begin(), seen_points.end(), triangle_id) == seen_points.end()) {
+            if (std::find(BEND(seen_points), triangle_id) == seen_points.end()) {
                 seen_points.insert(triangle_id);
                 std::vector<edge_t> edges = edgesAroundPoint(delaunator, edge);
 
 
                 std::vector<edge_t> triangles{};
-                std::transform(edges.begin(), edges.end(), std::back_inserter(triangles), triangleOfEdge);
+                std::transform(BEND(edges), std::back_inserter(triangles), triangleOfEdge);
 
                 std::vector<coord_t> vertices{};
                 std::transform(
-                    triangles.begin(), triangles.end(), std::back_inserter(vertices),
+                    BEND(triangles), std::back_inserter(vertices),
                     [&triangleCenter, &delaunator](edge_t tri_id) {
                         auto result = triangleCenter(delaunator, tri_id);
                         return result;
@@ -925,13 +927,13 @@ int main(int, char**)
             auto next_edge = nextHalfEdge(edge);
             unsigned int triangle_id = delaunator.triangles[next_edge];
 
-            if (std::find(seen_points.begin(), seen_points.end(), triangle_id) == seen_points.end()) {
+            if (std::find(BEND(seen_points), triangle_id) == seen_points.end()) {
                 seen_points.insert(triangle_id);
                 std::vector<edge_t> edges = edgesAroundPoint(delaunator, edge);
 
 
                 std::vector<edge_t> triangles{};
-                std::transform(edges.begin(), edges.end(), std::back_inserter(triangles), triangleOfEdge);
+                std::transform(BEND(edges), std::back_inserter(triangles), triangleOfEdge);
 
                 std::vector<coord_t> vertices{};
                 my_print(L"cell:");
@@ -1063,11 +1065,6 @@ int main(int, char**)
 
          }
      };
-
-    //delaunator::Delaunator delaunator2(points);
-    //canvas.image().clear();
-    //canvas.image().set_all_channels(255, 255, 255);
-    //forEachVoronoiCell(edge_points, *del, draw_vertices);
 
     //canvas.image().clear();
     //canvas.image().set_all_channels(240, 240, 240);
