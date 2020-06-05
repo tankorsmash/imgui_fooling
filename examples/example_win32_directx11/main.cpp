@@ -675,11 +675,11 @@ int main(int, char**)
         }
     };
 
-    delaunator::Delaunator delaunator2(points);
-    canvas.image().clear();
-    canvas.image().set_all_channels(255, 255, 255);
-    forEachVoronoiCell(edge_points, delaunator2, draw_vertices);
-    canvas.image().save_image("delaunator_output_vornoi.bmp");
+    //delaunator::Delaunator delaunator2(points);
+    //canvas.image().clear();
+    //canvas.image().set_all_channels(255, 255, 255);
+    //forEachVoronoiCell(edge_points, delaunator2, draw_vertices);
+    //canvas.image().save_image("delaunator_output_vornoi.bmp");
 
 
     //for (int h = 0; h < color_data.width; h++) {
