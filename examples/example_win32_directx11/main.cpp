@@ -534,15 +534,15 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
     return del;
 }
 
-void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points, v_double_pair_t& edge_points)
+void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points)
 {
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rng_seed); //Standard mersenne_twister_engine seeded with rd()
     std::uniform_int_distribution<> distrib(0, color_data.width);
     //std::uniform_int_distribution<> y_distrib(0, color_data.height);
-
+    v_double_pair_t point_pairs;
     points.clear();
-    edge_points.clear();
+    point_pairs.clear();
 
     // for (int i = 0; i < num_points; i++) {
     //     int x = distrib(gen);
@@ -552,137 +552,137 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
     //     edge_points.push_back(std::make_pair((double)x, (double)y));
     // }
 
-    edge_points.push_back(std::make_pair(338, 601));
-    edge_points.push_back(std::make_pair(357, 469));
-    edge_points.push_back(std::make_pair(200, 583));
-    edge_points.push_back(std::make_pair(424, 634));
-    edge_points.push_back(std::make_pair(302, 516));
-    edge_points.push_back(std::make_pair(265, 650));
-    edge_points.push_back(std::make_pair(459, 570));
-    edge_points.push_back(std::make_pair(367, 723));
-    edge_points.push_back(std::make_pair(453, 454));
-    edge_points.push_back(std::make_pair(220, 472));
-    edge_points.push_back(std::make_pair(326, 367));
-    edge_points.push_back(std::make_pair(424, 369));
-    edge_points.push_back(std::make_pair(393, 544));
-    edge_points.push_back(std::make_pair(121, 661));
-    edge_points.push_back(std::make_pair(180, 704));
-    edge_points.push_back(std::make_pair(126, 516));
-    edge_points.push_back(std::make_pair(87,  588));
-    edge_points.push_back(std::make_pair(523, 614));
-    edge_points.push_back(std::make_pair(472, 730));
-    edge_points.push_back(std::make_pair(277, 751));
-    edge_points.push_back(std::make_pair(585, 554));
-    edge_points.push_back(std::make_pair(532, 497));
-    edge_points.push_back(std::make_pair(351, 835));
-    edge_points.push_back(std::make_pair(450, 819));
-    edge_points.push_back(std::make_pair(511, 377));
-    edge_points.push_back(std::make_pair(586, 429));
-    edge_points.push_back(std::make_pair(251, 396));
-    edge_points.push_back(std::make_pair(164, 416));
-    edge_points.push_back(std::make_pair(224, 322));
-    edge_points.push_back(std::make_pair(299, 238));
-    edge_points.push_back(std::make_pair(404, 275));
-    edge_points.push_back(std::make_pair(470, 315));
-    edge_points.push_back(std::make_pair(121, 762));
-    edge_points.push_back(std::make_pair(2,   630));
-    edge_points.push_back(std::make_pair(21,  699));
-    edge_points.push_back(std::make_pair(186, 828));
-    edge_points.push_back(std::make_pair(40,  412));
-    edge_points.push_back(std::make_pair(28,  496));
-    edge_points.push_back(std::make_pair(572, 699));
-    edge_points.push_back(std::make_pair(646, 616));
-    edge_points.push_back(std::make_pair(566, 811));
-    edge_points.push_back(std::make_pair(275, 856));
-    edge_points.push_back(std::make_pair(622, 493));
-    edge_points.push_back(std::make_pair(720, 565));
-    edge_points.push_back(std::make_pair(382, 945));
-    edge_points.push_back(std::make_pair(257, 933));
-    edge_points.push_back(std::make_pair(475, 895));
-    edge_points.push_back(std::make_pair(554, 890));
-    edge_points.push_back(std::make_pair(512, 255));
-    edge_points.push_back(std::make_pair(627, 367));
-    edge_points.push_back(std::make_pair(570, 314));
-    edge_points.push_back(std::make_pair(712, 448));
-    edge_points.push_back(std::make_pair(126, 337));
-    edge_points.push_back(std::make_pair(122, 265));
-    edge_points.push_back(std::make_pair(212, 216));
-    edge_points.push_back(std::make_pair(397, 183));
-    edge_points.push_back(std::make_pair(326, 154));
-    edge_points.push_back(std::make_pair(35 , 833));
-    edge_points.push_back(std::make_pair(117, 848));
-    edge_points.push_back(std::make_pair(145, 935));
-    edge_points.push_back(std::make_pair(58,  296));
-    edge_points.push_back(std::make_pair(652, 769));
-    edge_points.push_back(std::make_pair(653, 686));
-    edge_points.push_back(std::make_pair(770, 664));
-    edge_points.push_back(std::make_pair(628, 884));
-    edge_points.push_back(std::make_pair(697, 846));
-    edge_points.push_back(std::make_pair(816, 549));
-    edge_points.push_back(std::make_pair(454, 980));
-    edge_points.push_back(std::make_pair(586, 971));
-    edge_points.push_back(std::make_pair(670, 968));
-    edge_points.push_back(std::make_pair(508, 119));
-    edge_points.push_back(std::make_pair(573, 179));
-    edge_points.push_back(std::make_pair(697, 247));
-    edge_points.push_back(std::make_pair(755, 324));
-    edge_points.push_back(std::make_pair(625, 264));
-    edge_points.push_back(std::make_pair(783, 442));
-    edge_points.push_back(std::make_pair(73,  178));
-    edge_points.push_back(std::make_pair(142, 186));
-    edge_points.push_back(std::make_pair(188, 123));
-    edge_points.push_back(std::make_pair(408,  98));
-    edge_points.push_back(std::make_pair(318,  68));
-    edge_points.push_back(std::make_pair(21,  948));
-    edge_points.push_back(std::make_pair(9,   207));
-    edge_points.push_back(std::make_pair(782, 761));
-    edge_points.push_back(std::make_pair(717, 730));
-    edge_points.push_back(std::make_pair(854, 729));
-    edge_points.push_back(std::make_pair(894, 659));
-    edge_points.push_back(std::make_pair(741, 916));
-    edge_points.push_back(std::make_pair(815, 896));
-    edge_points.push_back(std::make_pair(884, 580));
-    edge_points.push_back(std::make_pair(856, 416));
-    edge_points.push_back(std::make_pair(898, 511));
-    edge_points.push_back(std::make_pair(804, 996));
-    edge_points.push_back(std::make_pair(599,  69));
-    edge_points.push_back(std::make_pair(472,  10));
-    edge_points.push_back(std::make_pair(665, 138));
-    edge_points.push_back(std::make_pair(821, 232));
-    edge_points.push_back(std::make_pair(775, 147));
-    edge_points.push_back(std::make_pair(884, 279));
-    edge_points.push_back(std::make_pair(98,   53));
-    edge_points.push_back(std::make_pair(17,   94));
-    edge_points.push_back(std::make_pair(208,  28));
-    edge_points.push_back(std::make_pair(381,   5));
-    edge_points.push_back(std::make_pair(91,  980));
-    edge_points.push_back(std::make_pair(836, 811));
-    edge_points.push_back(std::make_pair(918, 766));
-    edge_points.push_back(std::make_pair(974, 706));
-    edge_points.push_back(std::make_pair(900, 843));
-    edge_points.push_back(std::make_pair(962, 580));
-    edge_points.push_back(std::make_pair(939, 930));
-    edge_points.push_back(std::make_pair(874, 969));
-    edge_points.push_back(std::make_pair(970, 492));
-    edge_points.push_back(std::make_pair(958, 327));
-    edge_points.push_back(std::make_pair(938, 405));
-    edge_points.push_back(std::make_pair(567,   0));
-    edge_points.push_back(std::make_pair(700,  16));
-    edge_points.push_back(std::make_pair(910, 184));
-    edge_points.push_back(std::make_pair(863, 106));
-    edge_points.push_back(std::make_pair(956, 248));
-    edge_points.push_back(std::make_pair(780,  21));
-    edge_points.push_back(std::make_pair(890, 354));
-    edge_points.push_back(std::make_pair(987, 801));
-    edge_points.push_back(std::make_pair(979,  96));
-    edge_points.push_back(std::make_pair(742 , 82));
-    edge_points.push_back(std::make_pair(917,  44));
-    edge_points.push_back(std::make_pair(853,  14));
-    edge_points.push_back(std::make_pair(986, 876));
-    edge_points.push_back(std::make_pair(986, 171));
-    edge_points.push_back(std::make_pair(980,  11));
+    point_pairs.push_back(std::make_pair(338, 601));
+    point_pairs.push_back(std::make_pair(357, 469));
+    point_pairs.push_back(std::make_pair(200, 583));
+    point_pairs.push_back(std::make_pair(424, 634));
+    point_pairs.push_back(std::make_pair(302, 516));
+    point_pairs.push_back(std::make_pair(265, 650));
+    point_pairs.push_back(std::make_pair(459, 570));
+    point_pairs.push_back(std::make_pair(367, 723));
+    point_pairs.push_back(std::make_pair(453, 454));
+    point_pairs.push_back(std::make_pair(220, 472));
+    point_pairs.push_back(std::make_pair(326, 367));
+    point_pairs.push_back(std::make_pair(424, 369));
+    point_pairs.push_back(std::make_pair(393, 544));
+    point_pairs.push_back(std::make_pair(121, 661));
+    point_pairs.push_back(std::make_pair(180, 704));
+    point_pairs.push_back(std::make_pair(126, 516));
+    point_pairs.push_back(std::make_pair(87,  588));
+    point_pairs.push_back(std::make_pair(523, 614));
+    point_pairs.push_back(std::make_pair(472, 730));
+    point_pairs.push_back(std::make_pair(277, 751));
+    point_pairs.push_back(std::make_pair(585, 554));
+    point_pairs.push_back(std::make_pair(532, 497));
+    point_pairs.push_back(std::make_pair(351, 835));
+    point_pairs.push_back(std::make_pair(450, 819));
+    point_pairs.push_back(std::make_pair(511, 377));
+    point_pairs.push_back(std::make_pair(586, 429));
+    point_pairs.push_back(std::make_pair(251, 396));
+    point_pairs.push_back(std::make_pair(164, 416));
+    point_pairs.push_back(std::make_pair(224, 322));
+    point_pairs.push_back(std::make_pair(299, 238));
+    point_pairs.push_back(std::make_pair(404, 275));
+    point_pairs.push_back(std::make_pair(470, 315));
+    point_pairs.push_back(std::make_pair(121, 762));
+    point_pairs.push_back(std::make_pair(2,   630));
+    point_pairs.push_back(std::make_pair(21,  699));
+    point_pairs.push_back(std::make_pair(186, 828));
+    point_pairs.push_back(std::make_pair(40,  412));
+    point_pairs.push_back(std::make_pair(28,  496));
+    point_pairs.push_back(std::make_pair(572, 699));
+    point_pairs.push_back(std::make_pair(646, 616));
+    point_pairs.push_back(std::make_pair(566, 811));
+    point_pairs.push_back(std::make_pair(275, 856));
+    point_pairs.push_back(std::make_pair(622, 493));
+    point_pairs.push_back(std::make_pair(720, 565));
+    point_pairs.push_back(std::make_pair(382, 945));
+    point_pairs.push_back(std::make_pair(257, 933));
+    point_pairs.push_back(std::make_pair(475, 895));
+    point_pairs.push_back(std::make_pair(554, 890));
+    point_pairs.push_back(std::make_pair(512, 255));
+    point_pairs.push_back(std::make_pair(627, 367));
+    point_pairs.push_back(std::make_pair(570, 314));
+    point_pairs.push_back(std::make_pair(712, 448));
+    point_pairs.push_back(std::make_pair(126, 337));
+    point_pairs.push_back(std::make_pair(122, 265));
+    point_pairs.push_back(std::make_pair(212, 216));
+    point_pairs.push_back(std::make_pair(397, 183));
+    point_pairs.push_back(std::make_pair(326, 154));
+    point_pairs.push_back(std::make_pair(35 , 833));
+    point_pairs.push_back(std::make_pair(117, 848));
+    point_pairs.push_back(std::make_pair(145, 935));
+    point_pairs.push_back(std::make_pair(58,  296));
+    point_pairs.push_back(std::make_pair(652, 769));
+    point_pairs.push_back(std::make_pair(653, 686));
+    point_pairs.push_back(std::make_pair(770, 664));
+    point_pairs.push_back(std::make_pair(628, 884));
+    point_pairs.push_back(std::make_pair(697, 846));
+    point_pairs.push_back(std::make_pair(816, 549));
+    point_pairs.push_back(std::make_pair(454, 980));
+    point_pairs.push_back(std::make_pair(586, 971));
+    point_pairs.push_back(std::make_pair(670, 968));
+    point_pairs.push_back(std::make_pair(508, 119));
+    point_pairs.push_back(std::make_pair(573, 179));
+    point_pairs.push_back(std::make_pair(697, 247));
+    point_pairs.push_back(std::make_pair(755, 324));
+    point_pairs.push_back(std::make_pair(625, 264));
+    point_pairs.push_back(std::make_pair(783, 442));
+    point_pairs.push_back(std::make_pair(73,  178));
+    point_pairs.push_back(std::make_pair(142, 186));
+    point_pairs.push_back(std::make_pair(188, 123));
+    point_pairs.push_back(std::make_pair(408,  98));
+    point_pairs.push_back(std::make_pair(318,  68));
+    point_pairs.push_back(std::make_pair(21,  948));
+    point_pairs.push_back(std::make_pair(9,   207));
+    point_pairs.push_back(std::make_pair(782, 761));
+    point_pairs.push_back(std::make_pair(717, 730));
+    point_pairs.push_back(std::make_pair(854, 729));
+    point_pairs.push_back(std::make_pair(894, 659));
+    point_pairs.push_back(std::make_pair(741, 916));
+    point_pairs.push_back(std::make_pair(815, 896));
+    point_pairs.push_back(std::make_pair(884, 580));
+    point_pairs.push_back(std::make_pair(856, 416));
+    point_pairs.push_back(std::make_pair(898, 511));
+    point_pairs.push_back(std::make_pair(804, 996));
+    point_pairs.push_back(std::make_pair(599,  69));
+    point_pairs.push_back(std::make_pair(472,  10));
+    point_pairs.push_back(std::make_pair(665, 138));
+    point_pairs.push_back(std::make_pair(821, 232));
+    point_pairs.push_back(std::make_pair(775, 147));
+    point_pairs.push_back(std::make_pair(884, 279));
+    point_pairs.push_back(std::make_pair(98,   53));
+    point_pairs.push_back(std::make_pair(17,   94));
+    point_pairs.push_back(std::make_pair(208,  28));
+    point_pairs.push_back(std::make_pair(381,   5));
+    point_pairs.push_back(std::make_pair(91,  980));
+    point_pairs.push_back(std::make_pair(836, 811));
+    point_pairs.push_back(std::make_pair(918, 766));
+    point_pairs.push_back(std::make_pair(974, 706));
+    point_pairs.push_back(std::make_pair(900, 843));
+    point_pairs.push_back(std::make_pair(962, 580));
+    point_pairs.push_back(std::make_pair(939, 930));
+    point_pairs.push_back(std::make_pair(874, 969));
+    point_pairs.push_back(std::make_pair(970, 492));
+    point_pairs.push_back(std::make_pair(958, 327));
+    point_pairs.push_back(std::make_pair(938, 405));
+    point_pairs.push_back(std::make_pair(567,   0));
+    point_pairs.push_back(std::make_pair(700,  16));
+    point_pairs.push_back(std::make_pair(910, 184));
+    point_pairs.push_back(std::make_pair(863, 106));
+    point_pairs.push_back(std::make_pair(956, 248));
+    point_pairs.push_back(std::make_pair(780,  21));
+    point_pairs.push_back(std::make_pair(890, 354));
+    point_pairs.push_back(std::make_pair(987, 801));
+    point_pairs.push_back(std::make_pair(979,  96));
+    point_pairs.push_back(std::make_pair(742 , 82));
+    point_pairs.push_back(std::make_pair(917,  44));
+    point_pairs.push_back(std::make_pair(853,  14));
+    point_pairs.push_back(std::make_pair(986, 876));
+    point_pairs.push_back(std::make_pair(986, 171));
+    point_pairs.push_back(std::make_pair(980,  11));
 
-    for (auto& edge_point: edge_points) {
+    for (auto& edge_point: point_pairs) {
         points.push_back(edge_point.first);
         points.push_back(edge_point.second);
     }
@@ -778,12 +778,11 @@ int main(int, char**)
 
     int num_points = 20;
     std::vector<double>  points{};
-    std::vector<std::pair<double, double>>  edge_points{};
 
     cartesian_canvas canvas(width_height, width_height);
     delaunator::Delaunator* del;
     auto regenerate_canvas = [&]() {
-        generate_points_for_del(width_height, color_data, num_points, points, edge_points);
+        generate_points_for_del(width_height, color_data, num_points, points);
         del = draw_del_points_to_canvas(points, &canvas);
 
         //for (auto& coords: edge_points) {
@@ -849,12 +848,12 @@ int main(int, char**)
     //}
 
     //circumcenter of triangle
-    auto triangleCenter = [pointsOfTriangle](v_double_pair_t points, delaunator::Delaunator& delaunator, edge_t tri_id) -> std::pair<double, double>
+    auto triangleCenter = [pointsOfTriangle](v_double_t points, delaunator::Delaunator& delaunator, edge_t tri_id) -> std::pair<double, double>
     {
         auto tri_points = pointsOfTriangle(delaunator, tri_id);
         std::vector<std::pair<double, double>> vertices{};
         std::transform(tri_points.begin(), tri_points.end(), std::back_inserter(vertices), [&points](edge_t tri_point) {
-            return points[tri_point];
+            return double_pair_t{points[tri_point], points[tri_point + 1]}; //TODO FIXME i dont think this is a good replacement of edge_points
         });
 
         return circumcenter(vertices[0], vertices[1], vertices[2]);
@@ -867,7 +866,7 @@ int main(int, char**)
         //return std::pair<double, double>(result.first, result.second);
     };
 
-    auto forEachVoronoiEdge = [&](v_double_pair_t points, delaunator::Delaunator& delaunator, std::function<void(edge_t, double_pair_t, double_pair_t)> callback) {
+    auto forEachVoronoiEdge = [&](delaunator::Delaunator& delaunator, std::function<void(edge_t, double_pair_t, double_pair_t)> callback) {
         for (unsigned e = 0;  e < delaunator.triangles.size(); e++) {
             auto halfedge = delaunator.halfedges[e];
             if (e < halfedge && halfedge != delaunator::INVALID_INDEX) {
@@ -965,7 +964,7 @@ int main(int, char**)
     //canvas.image().clear();
     //canvas.image().set_all_channels(255, 255, 255);
     //forEachVoronoiCell(edge_points, *del, draw_vertices);
-    forEachVoronoiEdge(edge_points, *del, draw_edges);
+    forEachVoronoiEdge(*del, draw_edges);
     //canvas.image().save_image("delaunator_output_vornoi.bmp");
 
     //for (int h = 0; h < color_data.width; h++) {
@@ -1067,7 +1066,7 @@ int main(int, char**)
             if (ImGui::InputInt("Voronoi Seed", &rng_seed, 1, 100)) {
                 
                 regenerate_canvas();
-                forEachVoronoiEdge(edge_points, *del, draw_edges);
+                forEachVoronoiEdge(*del, draw_edges);
                 TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
             }
 
@@ -1076,7 +1075,7 @@ int main(int, char**)
                 //ColorData color_data = create_voronoi_color_data(width_height, rng_seed);
                 //TEXTURE_DATA = create_texture_from_rgb_array(color_data);
                 regenerate_canvas();
-                forEachVoronoiEdge(edge_points, *del, draw_edges);
+                forEachVoronoiEdge(*del, draw_edges);
                 TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
             }
             ImGui::Text("pointer = %p", TEXTURE_DATA->texture_id);
