@@ -554,6 +554,29 @@ bool PointInTriangle(coord_t p, coord_t p0, coord_t p1, coord_t p2) {
 //    return !(has_neg && has_pos);
 //}
 
+
+double_pair_t circumcenter(double_pair_t a, double_pair_t b, double_pair_t c)
+{
+    //function circumcenter(a, b, c) {
+    //const ad = a[0] * a[0] + a[1] * a[1];
+    //const bd = b[0] * b[0] + b[1] * b[1];
+    //const cd = c[0] * c[0] + c[1] * c[1];
+    //const D = 2 * (a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1]));
+    //return [
+    //    1 / D * (ad * (b[1] - c[1]) + bd * (c[1] - a[1]) + cd * (a[1] - b[1])),
+    //    1 / D * (ad * (c[0] - b[0]) + bd * (a[0] - c[0]) + cd * (b[0] - a[0])),
+    //];
+    //}
+    double ad = a.first * a.first + a.second * a.second;
+    double bd = b.first * b.first + b.second * b.second;
+    double cd = c.first * c.first + c.second * c.second;
+    double D = 2 * (a.first * (b.second - c.second) + b.first * (c.second - a.second) + c.first * (a.second - b.second));
+    return double_pair_t{
+        1 / D * (ad * (b.second - c.second) + bd * (c.second - a.second) + cd * (a.second - b.second)),
+        1 / D * (ad * (c.first - b.first) + bd * (a.first - c.first) + cd * (b.first - a.first)),
+    };
+};
+
 int main(int, char**)
 {
     // Create application window
@@ -673,12 +696,14 @@ int main(int, char**)
             return points[tri_point];
         });
 
-        auto result = delaunator::circumcenter(
-            vertices[0].first, vertices[0].second,
-            vertices[1].first, vertices[1].second,
-            vertices[2].first, vertices[2].second
-        );
-        return std::pair<double, double>(result.first, result.second);
+        return circumcenter(vertices[0], vertices[1], vertices[2]);
+
+        //auto result = delaunator::circumcenter(
+        //    vertices[0].first, vertices[0].second,
+        //    vertices[1].first, vertices[1].second,
+        //    vertices[2].first, vertices[2].second
+        //);
+        //return std::pair<double, double>(result.first, result.second);
     };
 
     auto forEachVoronoiEdge = [&](v_double_pair_t points, delaunator::Delaunator& delaunator, std::function<void(edge_t, double_pair_t, double_pair_t)> callback) {
