@@ -18,6 +18,8 @@
 #include <sstream>
 #include <array>
 #include <chrono>
+#include <random>
+
 
 #include "ui.h"
 #include <thread>
@@ -26,6 +28,8 @@
 #include "delaunator.hpp"
 #include <set>
 
+using coord_t = std::pair<unsigned int, unsigned int>;
+static int rng_seed = 12345;
 
 //josh
 struct ColorData
@@ -469,6 +473,44 @@ ColorData create_voronoi_color_data(int width_height, int /*rng_seed*/)
     return color_data;
 }
 
+void draw_del_points_to_canvas(std::vector<double> points, cartesian_canvas* canvas)
+{
+    delaunator::Delaunator delaunator(points);
+    canvas->image().clear();
+    canvas->image().set_all_channels(240, 240, 240);
+    image_drawer drawer(canvas->image());
+    for(std::size_t i = 0; i < delaunator.triangles.size(); i+=3) {
+        drawer.triangle(
+            delaunator.coords[2 * delaunator.triangles[i]],         //tx0
+            delaunator.coords[2 * delaunator.triangles[i] + 1],     //ty0
+            delaunator.coords[2 * delaunator.triangles[i + 1]],     //tx1
+            delaunator.coords[2 * delaunator.triangles[i + 1] + 1], //ty1
+            delaunator.coords[2 * delaunator.triangles[i + 2]],     //tx2
+            delaunator.coords[2 * delaunator.triangles[i + 2] + 1]  //ty2
+        );
+    }
+    canvas->image().save_image("delaunator_output.bmp");
+}
+
+void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points)
+{
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rng_seed); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> x_distrib(0, color_data.width);
+    std::uniform_int_distribution<> y_distrib(0, color_data.height);
+
+    points.clear();
+
+    std::vector<coord_t>  edge_points{};
+    for (int i = 0; i < num_points; i++) {
+        int x = x_distrib(gen);
+        int y = y_distrib(gen);
+        points.push_back((double)x);
+        points.push_back((double)y);
+        edge_points.push_back(std::make_pair(x, y));
+    }
+}
+
 int main(int, char**)
 {
     // Create application window
@@ -519,33 +561,12 @@ int main(int, char**)
     int num_points = 20;
     std::vector<double>  points{};
 
-    using coord_t = std::pair<unsigned int, unsigned int>;
-    std::vector<coord_t>  edge_points{};
-    for (int i = 0; i < num_points; i++) {
-        int x = rand() % color_data.width;
-        int y = rand() % color_data.height;
-        points.push_back((double)x);
-        points.push_back((double)y);
-        edge_points.push_back(std::make_pair(x, y));
-    }
-
-    delaunator::Delaunator delaunator(points);
-    //auto image = bitmap_image(width_height, width_height);
     cartesian_canvas canvas(width_height, width_height);
-    canvas.image().clear();
-    canvas.image().set_all_channels(240, 240, 240);
-    image_drawer drawer(canvas.image());
-    for(std::size_t i = 0; i < delaunator.triangles.size(); i+=3) {
-        drawer.triangle(
-            delaunator.coords[2 * delaunator.triangles[i]],        //tx0
-            delaunator.coords[2 * delaunator.triangles[i] + 1],    //ty0
-            delaunator.coords[2 * delaunator.triangles[i + 1]],    //tx1
-            delaunator.coords[2 * delaunator.triangles[i + 1] + 1],//ty1
-            delaunator.coords[2 * delaunator.triangles[i + 2]],    //tx2
-            delaunator.coords[2 * delaunator.triangles[i + 2] + 1] //ty2
-        );
-    }
-    canvas.image().save_image("delaunator_output.bmp");
+    auto regenerate_canvas = [&]() {
+        generate_points_for_del(width_height, color_data, num_points, points);
+        draw_del_points_to_canvas(points, &canvas);
+    };
+    regenerate_canvas();
 
 
     using edge_t = unsigned int;
@@ -642,38 +663,38 @@ int main(int, char**)
         }
     };
 
-    auto draw_vertices = [&drawer, &canvas](edge_t cell_id, std::vector<coord_t>& vertices) {
-        drawer.pen_color(cell_id * 10, 0, 0);
-        auto draw_a_to_b = [&drawer, &canvas](coord_t& a, coord_t& b) {
-            canvas.line_segment(a.first, a.second, b.first, b.second);
-            //drawer.line_segment(a.first, a.second, b.first, b.second);
-        };
-
-        auto size = vertices.size();
-        if (size <= 2) {
-            my_print(L"skipping: num vertices: " + std::to_wstring(size));
-            return;
-        }
-
-        //my_print(L"num vertices: "+std::to_wstring(size));
-        for (unsigned int i = 0; i < size; i+=1) {
-            auto lerp = [](edge_t val) {
-                return 0 + val*(512-0);
-            };
-
-            //canvas.line_segment(lerp(a.first)-0.5, lerp(a.second)-0.5, lerp(b.first)-0.5, lerp(b.second)-0.5);
-            //canvas.fill_triangle(
-            //    vertices[i].first, vertices[i].second,
-            //    vertices[i + 1].first, vertices[i + 1].second,
-            //    vertices[i + 2].first, vertices[i + 2].second
-            //);
-            if (i != size - 1){
-                draw_a_to_b(vertices[i], vertices[i + 1]);
-            } else {
-                draw_a_to_b(vertices[i], vertices[0]);
-            }
-        }
-    };
+    // auto draw_vertices = [&drawer, &canvas](edge_t cell_id, std::vector<coord_t>& vertices) {
+    //     drawer.pen_color(cell_id * 10, 0, 0);
+    //     auto draw_a_to_b = [&drawer, &canvas](coord_t& a, coord_t& b) {
+    //         canvas.line_segment(a.first, a.second, b.first, b.second);
+    //         //drawer.line_segment(a.first, a.second, b.first, b.second);
+    //     };
+    //
+    //     auto size = vertices.size();
+    //     if (size <= 2) {
+    //         my_print(L"skipping: num vertices: " + std::to_wstring(size));
+    //         return;
+    //     }
+    //
+    //     //my_print(L"num vertices: "+std::to_wstring(size));
+    //     for (unsigned int i = 0; i < size; i+=1) {
+    //         auto lerp = [](edge_t val) {
+    //             return 0 + val*(512-0);
+    //         };
+    //
+    //         //canvas.line_segment(lerp(a.first)-0.5, lerp(a.second)-0.5, lerp(b.first)-0.5, lerp(b.second)-0.5);
+    //         //canvas.fill_triangle(
+    //         //    vertices[i].first, vertices[i].second,
+    //         //    vertices[i + 1].first, vertices[i + 1].second,
+    //         //    vertices[i + 2].first, vertices[i + 2].second
+    //         //);
+    //         if (i != size - 1){
+    //             draw_a_to_b(vertices[i], vertices[i + 1]);
+    //         } else {
+    //             draw_a_to_b(vertices[i], vertices[0]);
+    //         }
+    //     }
+    // };
 
     //delaunator::Delaunator delaunator2(points);
     //canvas.image().clear();
@@ -695,7 +716,8 @@ int main(int, char**)
     //    color_data.blue[i * color_data.width + 2] = 255;
     //}
     //auto new_texture_data = create_texture_from_memory(red, green, blue, width, height);
-    TextureData* new_texture_data = create_texture_from_rgb_array(color_data);
+    // TextureData* new_texture_data = create_texture_from_rgb_array(color_data);
+    TextureData* new_texture_data = nullptr;
 
     //for (int i = 0; i < w; i++) {
     //    red[i * width + 2] = 0;
@@ -722,7 +744,6 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != NULL);
 
-    static int rng_seed = 12345;
 
     noise = new FastNoise;
     noise->SetSeed(rng_seed);
@@ -782,8 +803,10 @@ int main(int, char**)
 
             if (ImGui::Button("Regenerate")) {
                 //TEXTURE_DATA = create_texture_from_memory(red, green, blue, width, height);
-                ColorData color_data = create_voronoi_color_data(width_height, rng_seed);
-                TEXTURE_DATA = create_texture_from_rgb_array(color_data);
+                //ColorData color_data = create_voronoi_color_data(width_height, rng_seed);
+                //TEXTURE_DATA = create_texture_from_rgb_array(color_data);
+                regenerate_canvas();
+                TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
             }
             ImGui::Text("pointer = %p", TEXTURE_DATA->texture_id);
             ImGui::Text("size = %d x %d", TEXTURE_DATA->image_width, TEXTURE_DATA->image_height);
