@@ -516,16 +516,18 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
             del->coords[2 * del->triangles[i + 2] + 1]  //ty2
         );
 
-        int x1 = del->coords[2 * del->triangles[i]];         //tx0
-        int y1 = del->coords[2 * del->triangles[i] + 1];     //ty0
-        int x2 = del->coords[2 * del->triangles[i + 1]];     //tx1
-        int y2 = del->coords[2 * del->triangles[i + 1] + 1]; //ty1
-        int x3 = del->coords[2 * del->triangles[i + 2]];    //tx2
-        int y3 = del->coords[2 * del->triangles[i + 2] + 1];  //ty2
-        auto center = circumcenter(double_pair_t{x1, y1}, double_pair_t{x2, y2}, double_pair_t{x3, y3});
+        double x1 = del->coords[2 * del->triangles[i]];         //tx0
+        double y1 = del->coords[2 * del->triangles[i] + 1];     //ty0
+        double x2 = del->coords[2 * del->triangles[i + 1]];     //tx1
+        double y2 = del->coords[2 * del->triangles[i + 1] + 1]; //ty1
+        double x3 = del->coords[2 * del->triangles[i + 2]];    //tx2
+        double y3 = del->coords[2 * del->triangles[i + 2] + 1];  //ty2
 
+
+        auto center = circumcenter(double_pair_t{x1, y1}, double_pair_t{x2, y2}, double_pair_t{x3, y3});
         drawer.pen_color(0, 0, 0);
         drawer.circle(center.first, center.second, 5);
+
     }
     canvas->image().save_image("delaunator_output.bmp");
 
@@ -540,14 +542,151 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
     //std::uniform_int_distribution<> y_distrib(0, color_data.height);
 
     points.clear();
+    edge_points.clear();
 
-    for (int i = 0; i < num_points; i++) {
-        int x = distrib(gen);
-        int y = distrib(gen);
-        points.push_back((double)x);
-        points.push_back((double)y);
-        edge_points.push_back(std::make_pair((double)x, (double)y));
+    // for (int i = 0; i < num_points; i++) {
+    //     int x = distrib(gen);
+    //     int y = distrib(gen);
+    //     points.push_back((double)x);
+    //     points.push_back((double)y);
+    //     edge_points.push_back(std::make_pair((double)x, (double)y));
+    // }
+
+    edge_points.push_back(std::make_pair(338, 601));
+    edge_points.push_back(std::make_pair(357, 469));
+    edge_points.push_back(std::make_pair(200, 583));
+    edge_points.push_back(std::make_pair(424, 634));
+    edge_points.push_back(std::make_pair(302, 516));
+    edge_points.push_back(std::make_pair(265, 650));
+    edge_points.push_back(std::make_pair(459, 570));
+    edge_points.push_back(std::make_pair(367, 723));
+    edge_points.push_back(std::make_pair(453, 454));
+    edge_points.push_back(std::make_pair(220, 472));
+    edge_points.push_back(std::make_pair(326, 367));
+    edge_points.push_back(std::make_pair(424, 369));
+    edge_points.push_back(std::make_pair(393, 544));
+    edge_points.push_back(std::make_pair(121, 661));
+    edge_points.push_back(std::make_pair(180, 704));
+    edge_points.push_back(std::make_pair(126, 516));
+    edge_points.push_back(std::make_pair(87,  588));
+    edge_points.push_back(std::make_pair(523, 614));
+    edge_points.push_back(std::make_pair(472, 730));
+    edge_points.push_back(std::make_pair(277, 751));
+    edge_points.push_back(std::make_pair(585, 554));
+    edge_points.push_back(std::make_pair(532, 497));
+    edge_points.push_back(std::make_pair(351, 835));
+    edge_points.push_back(std::make_pair(450, 819));
+    edge_points.push_back(std::make_pair(511, 377));
+    edge_points.push_back(std::make_pair(586, 429));
+    edge_points.push_back(std::make_pair(251, 396));
+    edge_points.push_back(std::make_pair(164, 416));
+    edge_points.push_back(std::make_pair(224, 322));
+    edge_points.push_back(std::make_pair(299, 238));
+    edge_points.push_back(std::make_pair(404, 275));
+    edge_points.push_back(std::make_pair(470, 315));
+    edge_points.push_back(std::make_pair(121, 762));
+    edge_points.push_back(std::make_pair(2,   630));
+    edge_points.push_back(std::make_pair(21,  699));
+    edge_points.push_back(std::make_pair(186, 828));
+    edge_points.push_back(std::make_pair(40,  412));
+    edge_points.push_back(std::make_pair(28,  496));
+    edge_points.push_back(std::make_pair(572, 699));
+    edge_points.push_back(std::make_pair(646, 616));
+    edge_points.push_back(std::make_pair(566, 811));
+    edge_points.push_back(std::make_pair(275, 856));
+    edge_points.push_back(std::make_pair(622, 493));
+    edge_points.push_back(std::make_pair(720, 565));
+    edge_points.push_back(std::make_pair(382, 945));
+    edge_points.push_back(std::make_pair(257, 933));
+    edge_points.push_back(std::make_pair(475, 895));
+    edge_points.push_back(std::make_pair(554, 890));
+    edge_points.push_back(std::make_pair(512, 255));
+    edge_points.push_back(std::make_pair(627, 367));
+    edge_points.push_back(std::make_pair(570, 314));
+    edge_points.push_back(std::make_pair(712, 448));
+    edge_points.push_back(std::make_pair(126, 337));
+    edge_points.push_back(std::make_pair(122, 265));
+    edge_points.push_back(std::make_pair(212, 216));
+    edge_points.push_back(std::make_pair(397, 183));
+    edge_points.push_back(std::make_pair(326, 154));
+    edge_points.push_back(std::make_pair(35 , 833));
+    edge_points.push_back(std::make_pair(117, 848));
+    edge_points.push_back(std::make_pair(145, 935));
+    edge_points.push_back(std::make_pair(58,  296));
+    edge_points.push_back(std::make_pair(652, 769));
+    edge_points.push_back(std::make_pair(653, 686));
+    edge_points.push_back(std::make_pair(770, 664));
+    edge_points.push_back(std::make_pair(628, 884));
+    edge_points.push_back(std::make_pair(697, 846));
+    edge_points.push_back(std::make_pair(816, 549));
+    edge_points.push_back(std::make_pair(454, 980));
+    edge_points.push_back(std::make_pair(586, 971));
+    edge_points.push_back(std::make_pair(670, 968));
+    edge_points.push_back(std::make_pair(508, 119));
+    edge_points.push_back(std::make_pair(573, 179));
+    edge_points.push_back(std::make_pair(697, 247));
+    edge_points.push_back(std::make_pair(755, 324));
+    edge_points.push_back(std::make_pair(625, 264));
+    edge_points.push_back(std::make_pair(783, 442));
+    edge_points.push_back(std::make_pair(73,  178));
+    edge_points.push_back(std::make_pair(142, 186));
+    edge_points.push_back(std::make_pair(188, 123));
+    edge_points.push_back(std::make_pair(408,  98));
+    edge_points.push_back(std::make_pair(318,  68));
+    edge_points.push_back(std::make_pair(21,  948));
+    edge_points.push_back(std::make_pair(9,   207));
+    edge_points.push_back(std::make_pair(782, 761));
+    edge_points.push_back(std::make_pair(717, 730));
+    edge_points.push_back(std::make_pair(854, 729));
+    edge_points.push_back(std::make_pair(894, 659));
+    edge_points.push_back(std::make_pair(741, 916));
+    edge_points.push_back(std::make_pair(815, 896));
+    edge_points.push_back(std::make_pair(884, 580));
+    edge_points.push_back(std::make_pair(856, 416));
+    edge_points.push_back(std::make_pair(898, 511));
+    edge_points.push_back(std::make_pair(804, 996));
+    edge_points.push_back(std::make_pair(599,  69));
+    edge_points.push_back(std::make_pair(472,  10));
+    edge_points.push_back(std::make_pair(665, 138));
+    edge_points.push_back(std::make_pair(821, 232));
+    edge_points.push_back(std::make_pair(775, 147));
+    edge_points.push_back(std::make_pair(884, 279));
+    edge_points.push_back(std::make_pair(98,   53));
+    edge_points.push_back(std::make_pair(17,   94));
+    edge_points.push_back(std::make_pair(208,  28));
+    edge_points.push_back(std::make_pair(381,   5));
+    edge_points.push_back(std::make_pair(91,  980));
+    edge_points.push_back(std::make_pair(836, 811));
+    edge_points.push_back(std::make_pair(918, 766));
+    edge_points.push_back(std::make_pair(974, 706));
+    edge_points.push_back(std::make_pair(900, 843));
+    edge_points.push_back(std::make_pair(962, 580));
+    edge_points.push_back(std::make_pair(939, 930));
+    edge_points.push_back(std::make_pair(874, 969));
+    edge_points.push_back(std::make_pair(970, 492));
+    edge_points.push_back(std::make_pair(958, 327));
+    edge_points.push_back(std::make_pair(938, 405));
+    edge_points.push_back(std::make_pair(567,   0));
+    edge_points.push_back(std::make_pair(700,  16));
+    edge_points.push_back(std::make_pair(910, 184));
+    edge_points.push_back(std::make_pair(863, 106));
+    edge_points.push_back(std::make_pair(956, 248));
+    edge_points.push_back(std::make_pair(780,  21));
+    edge_points.push_back(std::make_pair(890, 354));
+    edge_points.push_back(std::make_pair(987, 801));
+    edge_points.push_back(std::make_pair(979,  96));
+    edge_points.push_back(std::make_pair(742 , 82));
+    edge_points.push_back(std::make_pair(917,  44));
+    edge_points.push_back(std::make_pair(853,  14));
+    edge_points.push_back(std::make_pair(986, 876));
+    edge_points.push_back(std::make_pair(986, 171));
+    edge_points.push_back(std::make_pair(980,  11));
+
+    for (auto& edge_point: edge_points) {
+        points.push_back(edge_point.first);
+        points.push_back(edge_point.second);
     }
+
 }
 
 
@@ -629,7 +768,7 @@ int main(int, char**)
     //bool ret = LoadTextureFromFile("panel.png", &my_texture, &my_image_width, &my_image_height);
 
     ColorData color_data;
-    int width_height = 512;
+    int width_height = 512*1;
     color_data.width = width_height;
     color_data.height = width_height;
     color_data.red   = new unsigned char [color_data.height*color_data.width];
@@ -647,11 +786,11 @@ int main(int, char**)
         generate_points_for_del(width_height, color_data, num_points, points, edge_points);
         del = draw_del_points_to_canvas(points, &canvas);
 
-        for (auto& coords: edge_points) {
-            std::wstringstream ss;
-            ss << "(" << coords.first << ", " << coords.second << ")";
-            my_print(ss.str());
-        }
+        //for (auto& coords: edge_points) {
+        //    std::wstringstream ss;
+        //    ss << "(" << coords.first << ", " << coords.second << ")";
+        //    my_print(ss.str());
+        //}
     };
     regenerate_canvas();
 
@@ -660,7 +799,10 @@ int main(int, char**)
 
     //function triangleOfEdge(e)  { return Math.floor(e / 3); }
     auto triangleOfEdge = [](edge_t e) {
-        return (edge_t)std::floor(((size_t)e) / (size_t)3.0);
+        //return (edge_t)std::floor(((size_t)e) / (size_t)3.0);
+        //double raw  = ((double)e) / (double)3.0;
+        //return (edge_t)std::floor(raw);
+        return e / 3;
     };
 
     //function edgesOfTriangle(t) { return [3 * t, 3 * t + 1, 3 * t + 2]; }
@@ -726,23 +868,15 @@ int main(int, char**)
     };
 
     auto forEachVoronoiEdge = [&](v_double_pair_t points, delaunator::Delaunator& delaunator, std::function<void(edge_t, double_pair_t, double_pair_t)> callback) {
-        for (auto e = 0;  e < delaunator.triangles.size(); e++) {
-            if (e < delaunator.halfedges[e]) {
+        for (unsigned e = 0;  e < delaunator.triangles.size(); e++) {
+            auto halfedge = delaunator.halfedges[e];
+            if (e < halfedge && halfedge != delaunator::INVALID_INDEX) {
                 edge_t pt = triangleOfEdge(e);
                 double_pair_t p = triangleCenter(points, delaunator, pt);
-                edge_t qt = triangleOfEdge(delaunator.halfedges[e]);
 
-                //this seems to be a bug, qt should never be higher than 10k
-                if (qt > 10000) {
-                    auto full_error = delaunator::INVALID_INDEX;
-                    auto edge_error = delaunator::INVALID_INDEX/3;
-                    std::wstringstream ss;
-                    ss << "invalid edge id: " << qt;
-                    my_print(ss.str());
-                    //__debugbreak();
-                    continue;
-                }
+                edge_t qt = triangleOfEdge(delaunator.halfedges[e]);
                 double_pair_t q = triangleCenter(points, delaunator, qt);
+
                 callback(e, p, q);
             }
         }
@@ -752,7 +886,7 @@ int main(int, char**)
 
         std::set<unsigned int> seen_points;
         //for (const int& edge : delaunator.triangles) {
-        for (int edge = 0; edge < delaunator.triangles.size(); edge++) {
+        for (unsigned edge = 0; edge < delaunator.triangles.size(); edge++) {
             unsigned int point = delaunator.triangles[nextHalfEdge(edge)];
 
             if (std::find(seen_points.begin(), seen_points.end(), point) == seen_points.end()) {
@@ -781,13 +915,13 @@ int main(int, char**)
          drawer.pen_color(0, 0, 0);
          auto draw_a_to_b = [&drawer, &canvas](double_pair_t& a, double_pair_t& b) {
              std::wstringstream ss;
-             ss << "Drawing: ";
-             ss << a.first << " ";
-             ss << a.second << " ";
-             ss << b.first << " ";
-             ss << b.second << " ";
+             ss << "Drawing Edge: ";
+             ss << "(" << a.first << ", " << a.second << ") ";
+             ss << "(" << b.first << ", " << b.second << ") ";
              my_print(ss.str());
-             canvas.line_segment(a.first, a.second, b.first, b.second);
+             int mul = 4;
+             int offset = 0;
+             canvas.line_segment(a.first + offset, a.second + offset, b.first + offset, b.second + offset);
              //drawer.line_segment(a.first, a.second, b.first, b.second);
          };
 
@@ -833,7 +967,6 @@ int main(int, char**)
     //forEachVoronoiCell(edge_points, *del, draw_vertices);
     forEachVoronoiEdge(edge_points, *del, draw_edges);
     //canvas.image().save_image("delaunator_output_vornoi.bmp");
-
 
     //for (int h = 0; h < color_data.width; h++) {
     //    for (int w = 0; w < color_data.width; w++) {
@@ -931,13 +1064,19 @@ int main(int, char**)
             ImGui::Begin("DirectX11 Texture Test");
             static TextureData* TEXTURE_DATA = new_texture_data;
 
-            ImGui::InputInt("Voronoi Seed", &rng_seed, 1, 100);
+            if (ImGui::InputInt("Voronoi Seed", &rng_seed, 1, 100)) {
+                
+                regenerate_canvas();
+                forEachVoronoiEdge(edge_points, *del, draw_edges);
+                TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
+            }
 
             if (ImGui::Button("Regenerate")) {
                 //TEXTURE_DATA = create_texture_from_memory(red, green, blue, width, height);
                 //ColorData color_data = create_voronoi_color_data(width_height, rng_seed);
                 //TEXTURE_DATA = create_texture_from_rgb_array(color_data);
                 regenerate_canvas();
+                forEachVoronoiEdge(edge_points, *del, draw_edges);
                 TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
             }
             ImGui::Text("pointer = %p", TEXTURE_DATA->texture_id);
