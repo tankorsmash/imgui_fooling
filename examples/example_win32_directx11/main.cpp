@@ -499,15 +499,14 @@ ColorData create_voronoi_color_data(int width_height, int /*rng_seed*/)
     return color_data;
 }
 
-delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, cartesian_canvas* canvas)
+delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, cartesian_canvas* canvas, image_drawer* drawer)
 {
     delaunator::Delaunator* del = new delaunator::Delaunator(points);
     canvas->image().clear();
     canvas->image().set_all_channels(240, 240, 240);
-    image_drawer drawer(canvas->image());
     for(std::size_t i = 0; i < del->triangles.size(); i+=3) {
-        drawer.pen_color(255, 0, 0);
-        drawer.triangle(
+        drawer->pen_color(255, 0, 0);
+        drawer->triangle(
             del->coords[2 * del->triangles[i]],         //tx0
             del->coords[2 * del->triangles[i] + 1],     //ty0
             del->coords[2 * del->triangles[i + 1]],     //tx1
@@ -525,8 +524,8 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
 
 
         auto center = circumcenter(double_pair_t{x1, y1}, double_pair_t{x2, y2}, double_pair_t{x3, y3});
-        drawer.pen_color(0, 0, 0);
-        drawer.circle(center.first, center.second, 5);
+        drawer->pen_color(0, 0, 0);
+        drawer->circle(center.first, center.second, 5);
 
     }
     canvas->image().save_image("delaunator_output.bmp");
@@ -780,10 +779,11 @@ int main(int, char**)
     v_double_pair_t point_pairs;
 
     cartesian_canvas canvas(width_height, width_height);
+    image_drawer drawer(canvas.image());
     delaunator::Delaunator* del;
     auto regenerate_canvas = [&]() {
         generate_points_for_del(width_height, color_data, num_points, points, point_pairs);
-        del = draw_del_points_to_canvas(points, &canvas);
+        del = draw_del_points_to_canvas(points, &canvas, &drawer);
 
         //for (auto& coords: edge_points) {
         //    std::wstringstream ss;
@@ -874,7 +874,7 @@ int main(int, char**)
             if (e < halfedge && halfedge != delaunator::INVALID_INDEX) {
                 try{
                     auto p = double_pair_t{delaunator.coords.at(delaunator.triangles[e] * 2), delaunator.coords.at(delaunator.triangles[e] * 2 + 1)};
-                    auto q = double_pair_t{delaunator.coords.at(delaunator.halfedges[e] * 2), delaunator.coords.at(delaunator.halfedges[e] * 2 + 1)};
+                    auto q = double_pair_t{delaunator.coords.at(delaunator.triangles[nextHalfEdge(e)] * 2), delaunator.coords.at(delaunator.triangles[nextHalfEdge(e)] * 2 + 1)};
                     callback(e, p, q);
                 }
                 catch (std::out_of_range& ex) { my_print(L"invalid"); }
@@ -924,7 +924,7 @@ int main(int, char**)
         }
     };
 
-    image_drawer drawer(canvas.image());
+    //image_drawer drawer(canvas.image());
      auto draw_edges = [&drawer, &canvas, width_height](edge_t cell_id, double_pair_t e1, double_pair_t e2) {
          drawer.pen_color(0, 0, 0);
          auto draw_a_to_b = [&drawer, &canvas](double_pair_t& a, double_pair_t& b) {
@@ -979,64 +979,14 @@ int main(int, char**)
     //canvas.image().clear();
     //canvas.image().set_all_channels(255, 255, 255);
     //forEachVoronoiCell(edge_points, *del, draw_vertices);
+
+    //canvas.image().clear();
+    //canvas.image().set_all_channels(240, 240, 240);
     forEachVoronoiEdge(*del, draw_edges);
     //canvas.image().save_image("delaunator_output_vornoi.bmp");
 
-    //for (int h = 0; h < color_data.width; h++) {
-    //    for (int w = 0; w < color_data.width; w++) {
-    //        color_data.red  [w + color_data.width *  h] = 165;
-    //        color_data.green[w + color_data.width *  h] = 42;
-    //        color_data.blue [w + color_data.width *  h] = 200;
-    //    }
-    //}
-    //for (int i = 0; i < w; i++) {
-    //    color_data.red[i * color_data.width + 2] = 255;
-    //    color_data.green[i * color_data.width + 2] = 255;
-    //    color_data.blue[i * color_data.width + 2] = 255;
-    //}
-    //auto new_texture_data = create_texture_from_memory(red, green, blue, width, height);
-    // TextureData* new_texture_data = create_texture_from_rgb_array(color_data);
     TextureData* new_texture_data = nullptr;
 
-    //for (int i = 0; i < w; i++) {
-    //    red[i * width + 2] = 0;
-    //    red[i * width + 2] = 0;
-    //    red[i * width + 2] = 0;
-    //}
-    //auto new_texture_data2 = create_texture_from_memory(red, green, blue, width, height);
-    //memcpy_s(new_texture_data2.texture_id, 100, black_data, 50);
-
-
-
-    // Load Fonts
-    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-    // - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-    // - Read 'misc/fonts/README.txt' for more instructions and details.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    //io.Fonts->AddFontDefault();
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-    //IM_ASSERT(font != NULL);
-
-
-    noise = new FastNoise;
-    noise->SetSeed(rng_seed);
-    noise->SetCellularDistance2Indicies(0, 1);
-    noise->SetInterp(FastNoise::Hermite);
-    noise->SetNoiseType(FastNoise::Cellular);
-    noise->SetFrequency(0.02f);
-    noise->SetCellularJitter(0.4f);
-    noise->SetCellularReturnType(FastNoise::Distance);
-    noise->SetCellularDistanceFunction(FastNoise::CellularDistanceFunction::Euclidean);
-
-
-    color_data = create_voronoi_color_data(width_height, rng_seed);
-    new_texture_data = create_texture_from_rgb_array(color_data);
     new_texture_data = create_texture_data_from_image(&canvas.image());
 
 
