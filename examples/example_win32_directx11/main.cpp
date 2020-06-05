@@ -888,7 +888,7 @@ int main(int, char**)
 
     auto forEachVoronoiCell = [nextHalfEdge, edgesAroundPoint, triangleOfEdge, triangleCenter](
         delaunator::Delaunator& delaunator,
-        std::function<void(edge_t, std::vector<coord_t>)> callback) {
+        std::function<void(edge_t, std::vector<coord_t>&)> callback) {
 
         std::set<unsigned int> seen_points;
         //for (const int& edge : delaunator.triangles) {
@@ -1020,7 +1020,18 @@ int main(int, char**)
              } else {
                  draw_a_to_b(vertices[i], vertices[0]);
              }
+         }
 
+         if (cell_id ==56 ) //TODO replace 5 with whereever the mouse pos is
+         {
+             for (unsigned int i = 0; i < size; i += 1) {
+                 for (unsigned int j = 0; j < size; j += 1) {
+                     std::wstringstream ss;
+                     ss << i << " " << j;
+                     my_print(ss.str());
+                     draw_a_to_b(vertices[j], vertices[i]);
+                 }
+             }
          }
      };
      auto draw_vertices_doubles = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<double>& vertices) {
