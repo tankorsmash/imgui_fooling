@@ -439,6 +439,28 @@ const BYTE* get_noise_colors(int width_height, int /*rng_seed*/)
     return result;
 }
 
+double_pair_t circumcenter(double_pair_t a, double_pair_t b, double_pair_t c)
+{
+    //function circumcenter(a, b, c) {
+    //const ad = a[0] * a[0] + a[1] * a[1];
+    //const bd = b[0] * b[0] + b[1] * b[1];
+    //const cd = c[0] * c[0] + c[1] * c[1];
+    //const D = 2 * (a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1]));
+    //return [
+    //    1 / D * (ad * (b[1] - c[1]) + bd * (c[1] - a[1]) + cd * (a[1] - b[1])),
+    //    1 / D * (ad * (c[0] - b[0]) + bd * (a[0] - c[0]) + cd * (b[0] - a[0])),
+    //];
+    //}
+    double ad = a.first * a.first + a.second * a.second;
+    double bd = b.first * b.first + b.second * b.second;
+    double cd = c.first * c.first + c.second * c.second;
+    double D = 2 * (a.first * (b.second - c.second) + b.first * (c.second - a.second) + c.first * (a.second - b.second));
+    return double_pair_t{
+        1 / D * (ad * (b.second - c.second) + bd * (c.second - a.second) + cd * (a.second - b.second)),
+        1 / D * (ad * (c.first - b.first) + bd * (a.first - c.first) + cd * (b.first - a.first)),
+    };
+};
+
 ColorData create_voronoi_color_data(int width_height, int /*rng_seed*/)
 {
     ColorData color_data;
@@ -484,14 +506,26 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
     canvas->image().set_all_channels(240, 240, 240);
     image_drawer drawer(canvas->image());
     for(std::size_t i = 0; i < del->triangles.size(); i+=3) {
-        //drawer.triangle(
-        //    del->coords[2 * del->triangles[i]],         //tx0
-        //    del->coords[2 * del->triangles[i] + 1],     //ty0
-        //    del->coords[2 * del->triangles[i + 1]],     //tx1
-        //    del->coords[2 * del->triangles[i + 1] + 1], //ty1
-        //    del->coords[2 * del->triangles[i + 2]],     //tx2
-        //    del->coords[2 * del->triangles[i + 2] + 1]  //ty2
-        //);
+        drawer.pen_color(255, 0, 0);
+        drawer.triangle(
+            del->coords[2 * del->triangles[i]],         //tx0
+            del->coords[2 * del->triangles[i] + 1],     //ty0
+            del->coords[2 * del->triangles[i + 1]],     //tx1
+            del->coords[2 * del->triangles[i + 1] + 1], //ty1
+            del->coords[2 * del->triangles[i + 2]],     //tx2
+            del->coords[2 * del->triangles[i + 2] + 1]  //ty2
+        );
+
+        int x1 = del->coords[2 * del->triangles[i]];         //tx0
+        int y1 = del->coords[2 * del->triangles[i] + 1];     //ty0
+        int x2 = del->coords[2 * del->triangles[i + 1]];     //tx1
+        int y2 = del->coords[2 * del->triangles[i + 1] + 1]; //ty1
+        int x3 = del->coords[2 * del->triangles[i + 2]];    //tx2
+        int y3 = del->coords[2 * del->triangles[i + 2] + 1];  //ty2
+        auto center = circumcenter(double_pair_t{x1, y1}, double_pair_t{x2, y2}, double_pair_t{x3, y3});
+
+        drawer.pen_color(0, 0, 0);
+        drawer.circle(center.first, center.second, 5);
     }
     canvas->image().save_image("delaunator_output.bmp");
 
@@ -502,14 +536,14 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
 {
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rng_seed); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> x_distrib(0, color_data.width);
-    std::uniform_int_distribution<> y_distrib(0, color_data.height);
+    std::uniform_int_distribution<> distrib(0, color_data.width);
+    //std::uniform_int_distribution<> y_distrib(0, color_data.height);
 
     points.clear();
 
     for (int i = 0; i < num_points; i++) {
-        int x = x_distrib(gen);
-        int y = y_distrib(gen);
+        int x = distrib(gen);
+        int y = distrib(gen);
         points.push_back((double)x);
         points.push_back((double)y);
         edge_points.push_back(std::make_pair((double)x, (double)y));
@@ -555,27 +589,6 @@ bool PointInTriangle(coord_t p, coord_t p0, coord_t p1, coord_t p2) {
 //}
 
 
-double_pair_t circumcenter(double_pair_t a, double_pair_t b, double_pair_t c)
-{
-    //function circumcenter(a, b, c) {
-    //const ad = a[0] * a[0] + a[1] * a[1];
-    //const bd = b[0] * b[0] + b[1] * b[1];
-    //const cd = c[0] * c[0] + c[1] * c[1];
-    //const D = 2 * (a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1]));
-    //return [
-    //    1 / D * (ad * (b[1] - c[1]) + bd * (c[1] - a[1]) + cd * (a[1] - b[1])),
-    //    1 / D * (ad * (c[0] - b[0]) + bd * (a[0] - c[0]) + cd * (b[0] - a[0])),
-    //];
-    //}
-    double ad = a.first * a.first + a.second * a.second;
-    double bd = b.first * b.first + b.second * b.second;
-    double cd = c.first * c.first + c.second * c.second;
-    double D = 2 * (a.first * (b.second - c.second) + b.first * (c.second - a.second) + c.first * (a.second - b.second));
-    return double_pair_t{
-        1 / D * (ad * (b.second - c.second) + bd * (c.second - a.second) + cd * (a.second - b.second)),
-        1 / D * (ad * (c.first - b.first) + bd * (a.first - c.first) + cd * (b.first - a.first)),
-    };
-};
 
 int main(int, char**)
 {
@@ -633,6 +646,12 @@ int main(int, char**)
     auto regenerate_canvas = [&]() {
         generate_points_for_del(width_height, color_data, num_points, points, edge_points);
         del = draw_del_points_to_canvas(points, &canvas);
+
+        for (auto& coords: edge_points) {
+            std::wstringstream ss;
+            ss << "(" << coords.first << ", " << coords.second << ")";
+            my_print(ss.str());
+        }
     };
     regenerate_canvas();
 
@@ -709,17 +728,21 @@ int main(int, char**)
     auto forEachVoronoiEdge = [&](v_double_pair_t points, delaunator::Delaunator& delaunator, std::function<void(edge_t, double_pair_t, double_pair_t)> callback) {
         for (auto e = 0;  e < delaunator.triangles.size(); e++) {
             if (e < delaunator.halfedges[e]) {
-                auto pt = triangleOfEdge(e);
-                auto p = triangleCenter(points, delaunator, pt);
-                auto qt = triangleOfEdge(delaunator.halfedges[e]);
+                edge_t pt = triangleOfEdge(e);
+                double_pair_t p = triangleCenter(points, delaunator, pt);
+                edge_t qt = triangleOfEdge(delaunator.halfedges[e]);
 
                 //this seems to be a bug, qt should never be higher than 10k
                 if (qt > 10000) {
-                    auto qwe = delaunator::INVALID_INDEX;
+                    auto full_error = delaunator::INVALID_INDEX;
+                    auto edge_error = delaunator::INVALID_INDEX/3;
+                    std::wstringstream ss;
+                    ss << "invalid edge id: " << qt;
+                    my_print(ss.str());
                     //__debugbreak();
                     continue;
                 }
-                auto q = triangleCenter(points, delaunator, qt);
+                double_pair_t q = triangleCenter(points, delaunator, qt);
                 callback(e, p, q);
             }
         }
@@ -755,7 +778,7 @@ int main(int, char**)
 
     image_drawer drawer(canvas.image());
      auto draw_edges = [&drawer, &canvas, width_height](edge_t cell_id, double_pair_t e1, double_pair_t e2) {
-         drawer.pen_color(cell_id * 10, 0, 0);
+         drawer.pen_color(0, 0, 0);
          auto draw_a_to_b = [&drawer, &canvas](double_pair_t& a, double_pair_t& b) {
              std::wstringstream ss;
              ss << "Drawing: ";
