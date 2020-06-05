@@ -892,10 +892,10 @@ int main(int, char**)
         //for (const int& edge : delaunator.triangles) {
         for (unsigned edge = 0; edge < delaunator.triangles.size(); edge++) {
             auto next_edge = nextHalfEdge(edge);
-            unsigned int point = delaunator.triangles[next_edge];
+            unsigned int triangle_id = delaunator.triangles[next_edge];
 
-            if (std::find(seen_points.begin(), seen_points.end(), point) == seen_points.end()) {
-                seen_points.insert(point);
+            if (std::find(seen_points.begin(), seen_points.end(), triangle_id) == seen_points.end()) {
+                seen_points.insert(triangle_id);
                 std::vector<edge_t> edges = edgesAroundPoint(delaunator, edge);
 
 
@@ -903,12 +903,15 @@ int main(int, char**)
                 std::transform(edges.begin(), edges.end(), std::back_inserter(triangles), triangleOfEdge);
 
                 std::vector<coord_t> vertices{};
-                std::transform(triangles.begin(), triangles.end(), std::back_inserter(vertices), [&triangleCenter, &delaunator](edge_t tri_id) {
-                    auto result = triangleCenter(delaunator, tri_id);
-                    return result;
-                });
+                std::transform(
+                    triangles.begin(), triangles.end(), std::back_inserter(vertices),
+                    [&triangleCenter, &delaunator](edge_t tri_id) {
+                        auto result = triangleCenter(delaunator, tri_id);
+                        return result;
+                    }
+                );
 
-                callback(point, vertices);
+                callback(triangle_id, vertices);
             }
         }
     };
@@ -978,6 +981,7 @@ int main(int, char**)
              } else {
                  draw_a_to_b(vertices[i], vertices[0]);
              }
+
          }
      };
 
