@@ -473,23 +473,25 @@ ColorData create_voronoi_color_data(int width_height, int /*rng_seed*/)
     return color_data;
 }
 
-void draw_del_points_to_canvas(std::vector<double> points, cartesian_canvas* canvas)
+delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, cartesian_canvas* canvas)
 {
-    delaunator::Delaunator delaunator(points);
+    delaunator::Delaunator* del = new delaunator::Delaunator(points);
     canvas->image().clear();
     canvas->image().set_all_channels(240, 240, 240);
     image_drawer drawer(canvas->image());
-    for(std::size_t i = 0; i < delaunator.triangles.size(); i+=3) {
+    for(std::size_t i = 0; i < del->triangles.size(); i+=3) {
         drawer.triangle(
-            delaunator.coords[2 * delaunator.triangles[i]],         //tx0
-            delaunator.coords[2 * delaunator.triangles[i] + 1],     //ty0
-            delaunator.coords[2 * delaunator.triangles[i + 1]],     //tx1
-            delaunator.coords[2 * delaunator.triangles[i + 1] + 1], //ty1
-            delaunator.coords[2 * delaunator.triangles[i + 2]],     //tx2
-            delaunator.coords[2 * delaunator.triangles[i + 2] + 1]  //ty2
+            del->coords[2 * del->triangles[i]],         //tx0
+            del->coords[2 * del->triangles[i] + 1],     //ty0
+            del->coords[2 * del->triangles[i + 1]],     //tx1
+            del->coords[2 * del->triangles[i + 1] + 1], //ty1
+            del->coords[2 * del->triangles[i + 2]],     //tx2
+            del->coords[2 * del->triangles[i + 2] + 1]  //ty2
         );
     }
     canvas->image().save_image("delaunator_output.bmp");
+
+    return del;
 }
 
 void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points)
@@ -510,6 +512,44 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
         edge_points.push_back(std::make_pair(x, y));
     }
 }
+
+
+bool PointInTriangle(coord_t p, coord_t p0, coord_t p1, coord_t p2) {
+    float px, py;
+    std::tie(px, py) = p;
+    float p0x, p0y;
+    std::tie(p0x, p0y) = p0;
+    float p1x, p1y;
+    std::tie(p1x, p1y) = p1;
+    float p2x, p2y;
+    std::tie(p2x, p2y) = p2;
+
+    float A = 1.0f / 2.0f * (-p1y * p2x + p0y * (-p1x + p2x) + p0x * (p1y - p2y) + p1x * p2y);
+    int sign = A < 0 ? -1 : 1;
+    float s = (p0y * p2x - p0x * p2y + (p2y - p0y) * px + (p0x - p2x) * py) * sign;
+    float t = (p0x * p1y - p0y * p1x + (p0y - p1y) * px + (p1x - p0x) * py) * sign;
+    
+    return s > 0 && t > 0 && (s + t) < 2.0f * A * sign;
+}
+//float sign (coord_t p1, coord_t p2, coord_t p3)
+//{
+//    return (p1.first - p3.first) * (p2.second - p3.second) - (p2.first - p3.first) * (p1.second - p3.second);
+//}
+
+//bool PointInTriangle (coord_t pt, coord_t v1, coord_t v2, coord_t v3)
+//{
+//    float d1, d2, d3;
+//    bool has_neg, has_pos;
+//
+//    d1 = sign(pt, v1, v2);
+//    d2 = sign(pt, v2, v3);
+//    d3 = sign(pt, v3, v1);
+//
+//    has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+//    has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+//
+//    return !(has_neg && has_pos);
+//}
 
 int main(int, char**)
 {
@@ -562,9 +602,10 @@ int main(int, char**)
     std::vector<double>  points{};
 
     cartesian_canvas canvas(width_height, width_height);
+    delaunator::Delaunator* del;
     auto regenerate_canvas = [&]() {
         generate_points_for_del(width_height, color_data, num_points, points);
-        draw_del_points_to_canvas(points, &canvas);
+        del = draw_del_points_to_canvas(points, &canvas);
     };
     regenerate_canvas();
 
@@ -819,11 +860,41 @@ int main(int, char**)
             ImGui::Image((void*)TEXTURE_DATA->texture_id, ImVec2((float)TEXTURE_DATA->image_width, (float)TEXTURE_DATA->image_height));
             if (ImGui::IsItemHovered()) {
                 ImGui::LabelText("Mouse Pos", "%f %f", mouse_pos.x, mouse_pos.y);
-                noise->SetCellularReturnType(FastNoise::Distance);
-                float distance = noise->GetNoise(mouse_pos.x, mouse_pos.y);
-                noise->SetCellularReturnType(FastNoise::CellValue);
-                float cell_value = noise->GetNoise(mouse_pos.x, mouse_pos.y);
-                ImGui::LabelText("Distance, Id", "%f, %f", distance, (cell_value+1)/2*255);
+
+                ////vornoi position
+                //noise->SetCellularReturnType(FastNoise::Distance);
+                //float distance = noise->GetNoise(mouse_pos.x, mouse_pos.y);
+                //noise->SetCellularReturnType(FastNoise::CellValue);
+                //float cell_value = noise->GetNoise(mouse_pos.x, mouse_pos.y);
+                //ImGui::LabelText("Distance, Id", "%f, %f", distance, (cell_value+1)/2*255);
+
+                //delanay triangle
+                float distance = -1.0f;
+                float cell_id = -1.0f;
+                for(std::size_t i = 0; i < del->triangles.size(); i+=3) {
+                    int x1 = del->coords[2 * del->triangles[i]];         //tx0
+                    int y1 = del->coords[2 * del->triangles[i] + 1];     //ty0
+                    int x2 = del->coords[2 * del->triangles[i + 1]];     //tx1
+                    int y2 = del->coords[2 * del->triangles[i + 1] + 1]; //ty1
+                    int x3 = del->coords[2 * del->triangles[i + 2]];    //tx2
+                    int y3 = del->coords[2 * del->triangles[i + 2] + 1];  //ty2
+
+                    coord_t mouse_pos_pair = std::make_pair(mouse_pos.x, mouse_pos.y);
+
+                    //bool point_in_tri = PointInTriangle(
+                    //    std::make_pair(148, 345), std::make_pair(189, 349),
+                    //    std::make_pair(137, 306), std::make_pair(84, 471)
+                    //);
+                    bool point_in_tri = PointInTriangle(
+                        mouse_pos_pair, std::make_pair(x1, y1),
+                        std::make_pair(x2, y2), std::make_pair(x3, y3)
+                    );
+                    if (point_in_tri) {
+                        cell_id = i;
+                    }
+                }
+
+                ImGui::LabelText("Distance, Id", "%f, %f", distance, cell_id);
             }
             ImGui::End();
         }
