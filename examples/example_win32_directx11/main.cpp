@@ -798,27 +798,14 @@ int main(int, char**)
 
     auto nextHalfEdge = [](edge_t edge) { return (edge % 3 == 2) ? edge - 2 : edge + 1;  };
 
-    //function triangleOfEdge(e)  { return Math.floor(e / 3); }
     auto triangleOfEdge = [](edge_t e) {
-        //return (edge_t)std::floor(((size_t)e) / (size_t)3.0);
-        //double raw  = ((double)e) / (double)3.0;
-        //return (edge_t)std::floor(raw);
         return e / 3;
     };
 
-    //function edgesOfTriangle(t) { return [3 * t, 3 * t + 1, 3 * t + 2]; }
-
     //returns 3 edge IDs
     auto edgesOfTriangle = [](edge_t t) -> std::vector<edge_t> {
-        //return v_edge_t{3.0f * t, 3.0f * t + 1.0f, 3.0f * t + 2.0f};
-        //return std::vector<double>{3.0 * t, 3.0 * t + 1, 3.0 * t + 2};
         return std::vector<edge_t>{3* t, 3* t + 1, 3 * t + 2};
     };
-
-    //function pointsOfTriangle(delaunay, t) {
-    //    return edgesOfTriangle(t)
-    //        .map(e => delaunay.triangles[e]);
-    //}
 
     //finds 3 points for a given triangle id
     auto pointsOfTriangle = [edgesOfTriangle](const delaunator::Delaunator& delaunator, edge_t tri_id) ->std::vector<size_t> {
@@ -844,11 +831,6 @@ int main(int, char**)
         return result;
     };
 
-    //function triangleCenter(points, delaunay, t) {
-    //    const vertices = pointsOfTriangle(delaunay, t).map(p => points[p]);
-    //    return circumcenter(vertices[0], vertices[1], vertices[2]);
-    //}
-
     //circumcenter of triangle
     auto triangleCenter = [pointsOfTriangle](v_double_t points, delaunator::Delaunator& delaunator, edge_t tri_id) -> std::pair<double, double>
     {
@@ -858,14 +840,12 @@ int main(int, char**)
             return double_pair_t{delaunator.coords.at(tri_point*2), delaunator.coords.at(tri_point*2 + 1)};
         });
 
-        return circumcenter(vertices[0], vertices[1], vertices[2]);
-
-        //auto result = delaunator::circumcenter(
-        //    vertices[0].first, vertices[0].second,
-        //    vertices[1].first, vertices[1].second,
-        //    vertices[2].first, vertices[2].second
-        //);
-        //return std::pair<double, double>(result.first, result.second);
+        auto result = delaunator::circumcenter(
+            vertices[0].first, vertices[0].second,
+            vertices[1].first, vertices[1].second,
+            vertices[2].first, vertices[2].second
+        );
+        return std::pair<double, double>(result.first, result.second);
     };
 
     auto forEachVoronoiEdge = [&](delaunator::Delaunator& delaunator, std::function<void(edge_t, double_pair_t, double_pair_t)> callback) {
@@ -882,7 +862,7 @@ int main(int, char**)
         //    }
         //}
 
-        ////forEachVornoiEdge
+        ////forEachVoronoiEdge
         for (unsigned e = 0;  e < delaunator.triangles.size(); e++) {
             auto halfedge = delaunator.halfedges[e];
             if (e > halfedge && halfedge != delaunator::INVALID_INDEX) {
