@@ -30,6 +30,10 @@
 
 using coord_t = std::pair<unsigned int, unsigned int>;
 static int rng_seed = 12345;
+    using edge_t = size_t;
+    using v_double_t = std::vector<double>;
+    using double_pair_t = std::pair<double, double>;
+    using v_double_pair_t = std::vector<double_pair_t>;
 
 //josh
 struct ColorData
@@ -480,21 +484,21 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
     canvas->image().set_all_channels(240, 240, 240);
     image_drawer drawer(canvas->image());
     for(std::size_t i = 0; i < del->triangles.size(); i+=3) {
-        drawer.triangle(
-            del->coords[2 * del->triangles[i]],         //tx0
-            del->coords[2 * del->triangles[i] + 1],     //ty0
-            del->coords[2 * del->triangles[i + 1]],     //tx1
-            del->coords[2 * del->triangles[i + 1] + 1], //ty1
-            del->coords[2 * del->triangles[i + 2]],     //tx2
-            del->coords[2 * del->triangles[i + 2] + 1]  //ty2
-        );
+        //drawer.triangle(
+        //    del->coords[2 * del->triangles[i]],         //tx0
+        //    del->coords[2 * del->triangles[i] + 1],     //ty0
+        //    del->coords[2 * del->triangles[i + 1]],     //tx1
+        //    del->coords[2 * del->triangles[i + 1] + 1], //ty1
+        //    del->coords[2 * del->triangles[i + 2]],     //tx2
+        //    del->coords[2 * del->triangles[i + 2] + 1]  //ty2
+        //);
     }
     canvas->image().save_image("delaunator_output.bmp");
 
     return del;
 }
 
-void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points)
+void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points, v_double_pair_t& edge_points)
 {
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rng_seed); //Standard mersenne_twister_engine seeded with rd()
@@ -503,13 +507,12 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
 
     points.clear();
 
-    std::vector<coord_t>  edge_points{};
     for (int i = 0; i < num_points; i++) {
         int x = x_distrib(gen);
         int y = y_distrib(gen);
         points.push_back((double)x);
         points.push_back((double)y);
-        edge_points.push_back(std::make_pair(x, y));
+        edge_points.push_back(std::make_pair((double)x, (double)y));
     }
 }
 
@@ -600,30 +603,31 @@ int main(int, char**)
 
     int num_points = 20;
     std::vector<double>  points{};
+    std::vector<std::pair<double, double>>  edge_points{};
 
     cartesian_canvas canvas(width_height, width_height);
     delaunator::Delaunator* del;
     auto regenerate_canvas = [&]() {
-        generate_points_for_del(width_height, color_data, num_points, points);
+        generate_points_for_del(width_height, color_data, num_points, points, edge_points);
         del = draw_del_points_to_canvas(points, &canvas);
     };
     regenerate_canvas();
 
 
-    using edge_t = unsigned int;
-    using v_edge_t = std::vector<edge_t>;
     auto nextHalfEdge = [](edge_t edge) { return (edge % 3 == 2) ? edge - 2 : edge + 1;  };
 
     //function triangleOfEdge(e)  { return Math.floor(e / 3); }
     auto triangleOfEdge = [](edge_t e) {
-        return (edge_t)std::floor(((double)e) / 3.0);
+        return (edge_t)std::floor(((size_t)e) / (size_t)3.0);
     };
 
     //function edgesOfTriangle(t) { return [3 * t, 3 * t + 1, 3 * t + 2]; }
 
     //returns 3 edge IDs
-    auto edgesOfTriangle = [](edge_t t) {
-        return v_edge_t{3 * t, 3 * t + 1, 3 * t + 2};
+    auto edgesOfTriangle = [](edge_t t) -> std::vector<edge_t> {
+        //return v_edge_t{3.0f * t, 3.0f * t + 1.0f, 3.0f * t + 2.0f};
+        //return std::vector<double>{3.0 * t, 3.0 * t + 1, 3.0 * t + 2};
+        return std::vector<edge_t>{3* t, 3* t + 1, 3 * t + 2};
     };
 
     //function pointsOfTriangle(delaunay, t) {
@@ -632,11 +636,11 @@ int main(int, char**)
     //}
 
     //finds 3 points for a given triangle id
-    auto pointsOfTriangle = [edgesOfTriangle](const delaunator::Delaunator& delaunator, edge_t tri_id) {
+    auto pointsOfTriangle = [edgesOfTriangle](const delaunator::Delaunator& delaunator, edge_t tri_id) ->std::vector<size_t> {
         auto edges = edgesOfTriangle(tri_id);
 
-        v_edge_t points;
-        auto find_tri_for_edge = [delaunator](edge_t e){ return delaunator.triangles[e]; };
+        std::vector<size_t> points;
+        auto find_tri_for_edge = [delaunator](edge_t e) -> size_t{ return delaunator.triangles[e]; };
         std::transform(edges.begin(), edges.end(), std::back_inserter(points), find_tri_for_edge);
 
         return points;
@@ -661,10 +665,10 @@ int main(int, char**)
     //}
 
     //circumcenter of triangle
-    auto triangleCenter = [pointsOfTriangle](std::vector<coord_t>& points, delaunator::Delaunator& delaunator, edge_t tri_id)
+    auto triangleCenter = [pointsOfTriangle](v_double_pair_t points, delaunator::Delaunator& delaunator, edge_t tri_id) -> std::pair<double, double>
     {
-        std::vector<edge_t> tri_points = pointsOfTriangle(delaunator, tri_id);
-        std::vector<coord_t> vertices{};
+        auto tri_points = pointsOfTriangle(delaunator, tri_id);
+        std::vector<std::pair<double, double>> vertices{};
         std::transform(tri_points.begin(), tri_points.end(), std::back_inserter(vertices), [&points](edge_t tri_point) {
             return points[tri_point];
         });
@@ -674,7 +678,26 @@ int main(int, char**)
             vertices[1].first, vertices[1].second,
             vertices[2].first, vertices[2].second
         );
-        return std::pair<int, int>(result.first, result.second);
+        return std::pair<double, double>(result.first, result.second);
+    };
+
+    auto forEachVoronoiEdge = [&](v_double_pair_t points, delaunator::Delaunator& delaunator, std::function<void(edge_t, double_pair_t, double_pair_t)> callback) {
+        for (auto e = 0;  e < delaunator.triangles.size(); e++) {
+            if (e < delaunator.halfedges[e]) {
+                auto pt = triangleOfEdge(e);
+                auto p = triangleCenter(points, delaunator, pt);
+                auto qt = triangleOfEdge(delaunator.halfedges[e]);
+
+                //this seems to be a bug, qt should never be higher than 10k
+                if (qt > 10000) {
+                    auto qwe = delaunator::INVALID_INDEX;
+                    //__debugbreak();
+                    continue;
+                }
+                auto q = triangleCenter(points, delaunator, qt);
+                callback(e, p, q);
+            }
+        }
     };
 
     auto forEachVoronoiCell = [nextHalfEdge, edgesAroundPoint, triangleOfEdge, triangleCenter](std::vector<coord_t> points, delaunator::Delaunator& delaunator, std::function<void(edge_t, std::vector<coord_t>)> callback) {
@@ -694,9 +717,10 @@ int main(int, char**)
 
                 std::vector<coord_t> vertices{};
                 std::transform(triangles.begin(), triangles.end(), std::back_inserter(vertices), [&triangleCenter, &points, &delaunator](edge_t tri_id) {
-                    auto result = triangleCenter(points, delaunator, tri_id);
+                    //auto result = triangleCenter(points, delaunator, tri_id);
+                    //return result;
 
-                    return result;
+                    return coord_t{-1, -1};
                 });
 
                 callback(point, vertices);
@@ -704,43 +728,62 @@ int main(int, char**)
         }
     };
 
-    // auto draw_vertices = [&drawer, &canvas](edge_t cell_id, std::vector<coord_t>& vertices) {
-    //     drawer.pen_color(cell_id * 10, 0, 0);
-    //     auto draw_a_to_b = [&drawer, &canvas](coord_t& a, coord_t& b) {
-    //         canvas.line_segment(a.first, a.second, b.first, b.second);
-    //         //drawer.line_segment(a.first, a.second, b.first, b.second);
-    //     };
-    //
-    //     auto size = vertices.size();
-    //     if (size <= 2) {
-    //         my_print(L"skipping: num vertices: " + std::to_wstring(size));
-    //         return;
-    //     }
-    //
-    //     //my_print(L"num vertices: "+std::to_wstring(size));
-    //     for (unsigned int i = 0; i < size; i+=1) {
-    //         auto lerp = [](edge_t val) {
-    //             return 0 + val*(512-0);
-    //         };
-    //
-    //         //canvas.line_segment(lerp(a.first)-0.5, lerp(a.second)-0.5, lerp(b.first)-0.5, lerp(b.second)-0.5);
-    //         //canvas.fill_triangle(
-    //         //    vertices[i].first, vertices[i].second,
-    //         //    vertices[i + 1].first, vertices[i + 1].second,
-    //         //    vertices[i + 2].first, vertices[i + 2].second
-    //         //);
-    //         if (i != size - 1){
-    //             draw_a_to_b(vertices[i], vertices[i + 1]);
-    //         } else {
-    //             draw_a_to_b(vertices[i], vertices[0]);
-    //         }
-    //     }
-    // };
+    image_drawer drawer(canvas.image());
+     auto draw_edges = [&drawer, &canvas, width_height](edge_t cell_id, double_pair_t e1, double_pair_t e2) {
+         drawer.pen_color(cell_id * 10, 0, 0);
+         auto draw_a_to_b = [&drawer, &canvas](double_pair_t& a, double_pair_t& b) {
+             std::wstringstream ss;
+             ss << "Drawing: ";
+             ss << a.first << " ";
+             ss << a.second << " ";
+             ss << b.first << " ";
+             ss << b.second << " ";
+             my_print(ss.str());
+             canvas.line_segment(a.first, a.second, b.first, b.second);
+             //drawer.line_segment(a.first, a.second, b.first, b.second);
+         };
+
+         draw_a_to_b(e1, e2);
+    
+     };
+     auto draw_vertices = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<coord_t>& vertices) {
+         drawer.pen_color(cell_id * 10, 0, 0);
+         auto draw_a_to_b = [&drawer, &canvas](coord_t& a, coord_t& b) {
+             canvas.line_segment(a.first, a.second, b.first, b.second);
+             //drawer.line_segment(a.first, a.second, b.first, b.second);
+         };
+    
+         auto size = vertices.size();
+         if (size <= 2) {
+             my_print(L"skipping: num vertices: " + std::to_wstring(size));
+             return;
+         }
+    
+         //my_print(L"num vertices: "+std::to_wstring(size));
+         for (unsigned int i = 0; i < size; i+=1) {
+             auto lerp = [width_height](edge_t val) {
+                 return 0 + val*(width_height-0);
+             };
+    
+             //canvas.line_segment(lerp(a.first)-0.5, lerp(a.second)-0.5, lerp(b.first)-0.5, lerp(b.second)-0.5);
+             //canvas.fill_triangle(
+             //    vertices[i].first, vertices[i].second,
+             //    vertices[i + 1].first, vertices[i + 1].second,
+             //    vertices[i + 2].first, vertices[i + 2].second
+             //);
+             if (i != size - 1){
+                 draw_a_to_b(vertices[i], vertices[i + 1]);
+             } else {
+                 draw_a_to_b(vertices[i], vertices[0]);
+             }
+         }
+     };
 
     //delaunator::Delaunator delaunator2(points);
     //canvas.image().clear();
     //canvas.image().set_all_channels(255, 255, 255);
-    //forEachVoronoiCell(edge_points, delaunator2, draw_vertices);
+    //forEachVoronoiCell(edge_points, *del, draw_vertices);
+    forEachVoronoiEdge(edge_points, *del, draw_edges);
     //canvas.image().save_image("delaunator_output_vornoi.bmp");
 
 
