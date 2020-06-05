@@ -855,8 +855,7 @@ int main(int, char**)
         auto tri_points = pointsOfTriangle(delaunator, tri_id);
         std::vector<std::pair<double, double>> vertices{};
         std::transform(tri_points.begin(), tri_points.end(), std::back_inserter(vertices), [&points, &delaunator](edge_t tri_point) {
-            return double_pair_t{delaunator.coords.at(tri_point), delaunator.coords.at(tri_point + 1)};
-            return double_pair_t{points[tri_point], points[tri_point + 1]}; //TODO FIXME i dont think this is a good replacement of edge_points
+            return double_pair_t{delaunator.coords.at(tri_point*2), delaunator.coords.at(tri_point*2 + 1)};
         });
 
         return circumcenter(vertices[0], vertices[1], vertices[2]);
@@ -871,31 +870,31 @@ int main(int, char**)
 
     auto forEachVoronoiEdge = [&](delaunator::Delaunator& delaunator, std::function<void(edge_t, double_pair_t, double_pair_t)> callback) {
         //forEachTriangleEdge
-        for (unsigned e = 0;  e < delaunator.triangles.size(); e++) {
-            auto halfedge = delaunator.halfedges[e];
-            if (e < halfedge && halfedge != delaunator::INVALID_INDEX) {
-                try{
-                    auto p = double_pair_t{delaunator.coords.at(delaunator.triangles[e] * 2), delaunator.coords.at(delaunator.triangles[e] * 2 + 1)};
-                    auto q = double_pair_t{delaunator.coords.at(delaunator.triangles[nextHalfEdge(e)] * 2), delaunator.coords.at(delaunator.triangles[nextHalfEdge(e)] * 2 + 1)};
-                    callback(e, p, q);
-                }
-                catch (std::out_of_range& ex) { my_print(L"invalid"); }
-            }
-        }
-
-        ////forEachVornoiEdge
         //for (unsigned e = 0;  e < delaunator.triangles.size(); e++) {
         //    auto halfedge = delaunator.halfedges[e];
-        //    if (e > halfedge && halfedge != delaunator::INVALID_INDEX) {
-        //        edge_t pt = triangleOfEdge(e);
-        //        double_pair_t p = triangleCenter(points, delaunator, pt);
-
-        //        edge_t qt = triangleOfEdge(delaunator.halfedges[e]);
-        //        double_pair_t q = triangleCenter(points, delaunator, qt);
-
-        //        callback(e, p, q);
+        //    if (e < halfedge && halfedge != delaunator::INVALID_INDEX) {
+        //        try{
+        //            auto p = double_pair_t{delaunator.coords.at(delaunator.triangles[e] * 2), delaunator.coords.at(delaunator.triangles[e] * 2 + 1)};
+        //            auto q = double_pair_t{delaunator.coords.at(delaunator.triangles[nextHalfEdge(e)] * 2), delaunator.coords.at(delaunator.triangles[nextHalfEdge(e)] * 2 + 1)};
+        //            callback(e, p, q);
+        //        }
+        //        catch (std::out_of_range& ex) { my_print(L"invalid"); }
         //    }
         //}
+
+        ////forEachVornoiEdge
+        for (unsigned e = 0;  e < delaunator.triangles.size(); e++) {
+            auto halfedge = delaunator.halfedges[e];
+            if (e > halfedge && halfedge != delaunator::INVALID_INDEX) {
+                edge_t pt = triangleOfEdge(e);
+                double_pair_t p = triangleCenter(delaunator.coords, delaunator, pt);
+
+                edge_t qt = triangleOfEdge(delaunator.halfedges[e]);
+                double_pair_t q = triangleCenter(delaunator.coords, delaunator, qt);
+
+                callback(e, p, q);
+            }
+        }
     };
 
     auto forEachVoronoiCell = [nextHalfEdge, edgesAroundPoint, triangleOfEdge, triangleCenter](std::vector<coord_t> points, delaunator::Delaunator& delaunator, std::function<void(edge_t, std::vector<coord_t>)> callback) {
