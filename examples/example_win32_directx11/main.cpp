@@ -506,21 +506,23 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
     canvas->image().set_all_channels(240, 240, 240);
     for(std::size_t i = 0; i < del->triangles.size(); i+=3) {
         drawer->pen_color(255, 0, 0);
-        drawer->triangle(
-            del->coords[2 * del->triangles[i]],         //tx0
-            del->coords[2 * del->triangles[i] + 1],     //ty0
-            del->coords[2 * del->triangles[i + 1]],     //tx1
-            del->coords[2 * del->triangles[i + 1] + 1], //ty1
-            del->coords[2 * del->triangles[i + 2]],     //tx2
-            del->coords[2 * del->triangles[i + 2] + 1]  //ty2
-        );
-
         double x1 = del->coords[2 * del->triangles[i]];         //tx0
         double y1 = del->coords[2 * del->triangles[i] + 1];     //ty0
         double x2 = del->coords[2 * del->triangles[i + 1]];     //tx1
         double y2 = del->coords[2 * del->triangles[i + 1] + 1]; //ty1
         double x3 = del->coords[2 * del->triangles[i + 2]];    //tx2
         double y3 = del->coords[2 * del->triangles[i + 2] + 1];  //ty2
+        drawer->triangle( x1, y1, x2, y2, x3, y3 );
+
+        //drawer->triangle(
+        //    del->coords[2 * del->triangles[i]],         //tx0
+        //    del->coords[2 * del->triangles[i] + 1],     //ty0
+        //    del->coords[2 * del->triangles[i + 1]],     //tx1
+        //    del->coords[2 * del->triangles[i + 1] + 1], //ty1
+        //    del->coords[2 * del->triangles[i + 2]],     //tx2
+        //    del->coords[2 * del->triangles[i + 2] + 1]  //ty2
+        //);
+
 
 
         auto center = circumcenter(double_pair_t{x1, y1}, double_pair_t{x2, y2}, double_pair_t{x3, y3});
@@ -927,15 +929,17 @@ int main(int, char**)
     //image_drawer drawer(canvas.image());
      auto draw_edges = [&drawer, &canvas, width_height](edge_t cell_id, double_pair_t e1, double_pair_t e2) {
          drawer.pen_color(0, 0, 0);
-         auto draw_a_to_b = [&drawer, &canvas](double_pair_t& a, double_pair_t& b) {
+         auto draw_a_to_b = [&drawer, &canvas, width_height](double_pair_t& a, double_pair_t& b) {
              std::wstringstream ss;
              ss << "Drawing Edge: ";
              ss << "(" << a.first << ", " << a.second << ") ";
              ss << "(" << b.first << ", " << b.second << ") ";
              my_print(ss.str());
              int mul = 4;
+             int x_offset = -(width_height/2);
+             int y_offset = (width_height/2);
              int offset = 0;
-             canvas.line_segment(a.first + offset, a.second + offset, b.first + offset, b.second + offset);
+             canvas.line_segment(a.first + x_offset, + y_offset - a.second , b.first + x_offset,  y_offset - b.second);
              //drawer.line_segment(a.first, a.second, b.first, b.second);
          };
 
