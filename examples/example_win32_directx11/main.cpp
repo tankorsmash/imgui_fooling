@@ -307,7 +307,7 @@ TextureData* create_texture_data_from_image(bitmap_image* image)
 
     //create a 4bpp vector from the 3bpp source
     std::vector<unsigned char> vector_buffer{};
-    auto buf_len = image->pixel_count() * (image->bytes_per_pixel()); //3bpp 
+    auto buf_len = image->pixel_count() * (image->bytes_per_pixel()); //3bpp
     auto new_buf_len = image->pixel_count() * (image->bytes_per_pixel() + 1); //3bpp + 1 for alpha
     vector_buffer.reserve(new_buf_len);
     for (unsigned i = 0; i < buf_len; i++) { //assuming 200k is size of buffer
@@ -338,7 +338,7 @@ TextureData* create_texture_from_rgb_array(unsigned char red[], unsigned char gr
 
     //create a 4bpp vector from the 3bpp source
     std::vector<unsigned char> vector_buffer{};
-    auto buf_len = image->pixel_count() * (image->bytes_per_pixel()); //3bpp 
+    auto buf_len = image->pixel_count() * (image->bytes_per_pixel()); //3bpp
     auto new_buf_len = image->pixel_count() * (image->bytes_per_pixel() + 1); //3bpp + 1 for alpha
     vector_buffer.reserve(new_buf_len);
     for (unsigned int i = 0; i < buf_len; i++) { //assuming 200k is size of buffer
@@ -710,7 +710,7 @@ bool PointInTriangle(coord_t p, coord_t p0, coord_t p1, coord_t p2) {
     int sign = A < 0 ? -1 : 1;
     float s = (p0y * p2x - p0x * p2y + (p2y - p0y) * px + (p0x - p2x) * py) * sign;
     float t = (p0x * p1y - p0y * p1x + (p0y - p1y) * px + (p1x - p0x) * py) * sign;
-    
+
     return s > 0 && t > 0 && (s + t) < 2.0f * A * sign;
 }
 //float sign (coord_t p1, coord_t p2, coord_t p3)
@@ -971,7 +971,7 @@ int main(int, char**)
          };
 
          draw_a_to_b(e1, e2);
-    
+
      };
      auto draw_vertices_coord = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<coord_t>& vertices) {
          drawer.pen_color(cell_id * 10, 0, 0);
@@ -994,19 +994,19 @@ int main(int, char**)
              //no need for offsets here either
              drawer.line_segment(a.first, a.second, b.first, b.second);
          };
-    
+
          auto size = vertices.size();
          if (size <= 1) {
              my_print(L"skipping: num vertices: " + std::to_wstring(size));
              return;
          }
-    
+
          //my_print(L"num vertices: "+std::to_wstring(size));
          for (unsigned int i = 0; i < size; i+=1) {
              auto lerp = [width_height](edge_t val) {
                  return 0 + val*(width_height-0);
              };
-    
+
              //canvas.line_segment(lerp(a.first)-0.5, lerp(a.second)-0.5, lerp(b.first)-0.5, lerp(b.second)-0.5);
              //canvas.fill_triangle(
              //    vertices[i].first, vertices[i].second,
@@ -1042,13 +1042,13 @@ int main(int, char**)
              //no need for offsets here either
              drawer.line_segment(x1, y1, x2, y2);
          };
-    
+
          auto size = vertices.size();
          if (size <= 1) {
              my_print(L"skipping: num vertices: " + std::to_wstring(size));
              return;
          }
-    
+
          my_print(L"num vertices: "+std::to_wstring(size));
          for (unsigned int i = 0; i < size-3; i+=2) {
              if (i != size - 3){
@@ -1121,7 +1121,7 @@ int main(int, char**)
             static TextureData* TEXTURE_DATA = new_texture_data;
 
             if (ImGui::InputInt("Voronoi Seed", &rng_seed, 1, 100)) {
-                
+
                 regenerate_canvas();
                 forEachVoronoiEdge(*del, draw_edges);
                 TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
