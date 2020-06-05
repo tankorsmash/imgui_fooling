@@ -832,17 +832,18 @@ int main(int, char**)
             result.push_back(incoming);
             const edge_t outgoing = nextHalfEdge(incoming);
             incoming = delaunator.halfedges[outgoing];
-        } while (incoming != (edge_t)-1 && incoming != start);
+        //} while (incoming != (edge_t)-1 && incoming != start);
+        } while (incoming != delaunator::INVALID_INDEX && incoming != start);
 
         return result;
     };
 
     //circumcenter of triangle
-    auto triangleCenter = [pointsOfTriangle](v_double_t points, delaunator::Delaunator& delaunator, edge_t tri_id) -> std::pair<double, double>
+    auto triangleCenter = [pointsOfTriangle](delaunator::Delaunator& delaunator, edge_t tri_id) -> std::pair<double, double>
     {
         auto tri_points = pointsOfTriangle(delaunator, tri_id);
         std::vector<std::pair<double, double>> vertices{};
-        std::transform(tri_points.begin(), tri_points.end(), std::back_inserter(vertices), [&points, &delaunator](edge_t tri_point) {
+        std::transform(tri_points.begin(), tri_points.end(), std::back_inserter(vertices), [&delaunator](edge_t tri_point) {
             return double_pair_t{delaunator.coords.at(tri_point*2), delaunator.coords.at(tri_point*2 + 1)};
         });
 
@@ -873,22 +874,25 @@ int main(int, char**)
             auto halfedge = delaunator.halfedges[e];
             if (e > halfedge && halfedge != delaunator::INVALID_INDEX) {
                 edge_t pt = triangleOfEdge(e);
-                double_pair_t p = triangleCenter(delaunator.coords, delaunator, pt);
+                double_pair_t p = triangleCenter(delaunator, pt);
 
                 edge_t qt = triangleOfEdge(delaunator.halfedges[e]);
-                double_pair_t q = triangleCenter(delaunator.coords, delaunator, qt);
+                double_pair_t q = triangleCenter(delaunator, qt);
 
                 callback(e, p, q);
             }
         }
     };
 
-    auto forEachVoronoiCell = [nextHalfEdge, edgesAroundPoint, triangleOfEdge, triangleCenter](std::vector<coord_t> points, delaunator::Delaunator& delaunator, std::function<void(edge_t, std::vector<coord_t>)> callback) {
+    auto forEachVoronoiCell = [nextHalfEdge, edgesAroundPoint, triangleOfEdge, triangleCenter](
+        delaunator::Delaunator& delaunator,
+        std::function<void(edge_t, std::vector<coord_t>)> callback) {
 
         std::set<unsigned int> seen_points;
         //for (const int& edge : delaunator.triangles) {
         for (unsigned edge = 0; edge < delaunator.triangles.size(); edge++) {
-            unsigned int point = delaunator.triangles[nextHalfEdge(edge)];
+            auto next_edge = nextHalfEdge(edge);
+            unsigned int point = delaunator.triangles[next_edge];
 
             if (std::find(seen_points.begin(), seen_points.end(), point) == seen_points.end()) {
                 seen_points.insert(point);
@@ -899,11 +903,9 @@ int main(int, char**)
                 std::transform(edges.begin(), edges.end(), std::back_inserter(triangles), triangleOfEdge);
 
                 std::vector<coord_t> vertices{};
-                std::transform(triangles.begin(), triangles.end(), std::back_inserter(vertices), [&triangleCenter, &points, &delaunator](edge_t tri_id) {
-                    //auto result = triangleCenter(points, delaunator, tri_id);
-                    //return result;
-
-                    return coord_t{-1, -1};
+                std::transform(triangles.begin(), triangles.end(), std::back_inserter(vertices), [&triangleCenter, &delaunator](edge_t tri_id) {
+                    auto result = triangleCenter(delaunator, tri_id);
+                    return result;
                 });
 
                 callback(point, vertices);
@@ -933,13 +935,28 @@ int main(int, char**)
      };
      auto draw_vertices = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<coord_t>& vertices) {
          drawer.pen_color(cell_id * 10, 0, 0);
-         auto draw_a_to_b = [&drawer, &canvas](coord_t& a, coord_t& b) {
-             canvas.line_segment(a.first, a.second, b.first, b.second);
-             //drawer.line_segment(a.first, a.second, b.first, b.second);
+         auto draw_a_to_b = [&drawer, &canvas, width_height](coord_t& a, coord_t& b) {
+             if (a.first == delaunator::INVALID_INDEX ||
+                 a.second == delaunator::INVALID_INDEX ||
+                 b.first == delaunator::INVALID_INDEX ||
+                 b.second == delaunator::INVALID_INDEX) {
+                 return;
+             }
+             //std::wstringstream ss;
+             //ss << "Drawing Vert: ";
+             //ss << "(" << a.first << ", " << a.second << ") ";
+             //ss << "(" << b.first << ", " << b.second << ") ";
+             //my_print(ss.str());
+
+
+             drawer.pen_color(255, 0, 255);
+             drawer.pen_width(20);
+             //no need for offsets here either
+             drawer.line_segment(a.first, a.second, b.first, b.second);
          };
     
          auto size = vertices.size();
-         if (size <= 2) {
+         if (size <= 1) {
              my_print(L"skipping: num vertices: " + std::to_wstring(size));
              return;
          }
@@ -971,7 +988,9 @@ int main(int, char**)
 
     //canvas.image().clear();
     //canvas.image().set_all_channels(240, 240, 240);
-    forEachVoronoiEdge(*del, draw_edges);
+    //forEachVoronoiEdge(*del, draw_edges);
+    forEachVoronoiCell(*del, draw_vertices);
+
     //canvas.image().save_image("delaunator_output_vornoi.bmp");
 
     TextureData* new_texture_data = nullptr;
