@@ -916,6 +916,43 @@ int main(int, char**)
         }
     };
 
+    auto forEachVoronoiTriangle = [nextHalfEdge, edgesAroundPoint, triangleOfEdge, triangleCenter, pointsOfTriangle, del](
+        delaunator::Delaunator& delaunator,
+        std::function<void(edge_t, std::vector<double>)> callback) {
+
+        std::set<unsigned int> seen_points;
+        for (unsigned edge = 0; edge < delaunator.triangles.size(); edge++) {
+            auto next_edge = nextHalfEdge(edge);
+            unsigned int triangle_id = delaunator.triangles[next_edge];
+
+            if (std::find(seen_points.begin(), seen_points.end(), triangle_id) == seen_points.end()) {
+                seen_points.insert(triangle_id);
+                std::vector<edge_t> edges = edgesAroundPoint(delaunator, edge);
+
+
+                std::vector<edge_t> triangles{};
+                std::transform(edges.begin(), edges.end(), std::back_inserter(triangles), triangleOfEdge);
+
+                std::vector<coord_t> vertices{};
+                my_print(L"cell:");
+                for (edge_t& triangle_id: triangles) {
+                    my_print(L"triangle:");
+                    auto triangle_edges = pointsOfTriangle(*del, triangle_id);
+                    v_double_t tri_verts;
+                    for (auto& el: triangle_edges) {
+                        auto x = del->coords[el*2];
+                        auto y = del->coords[el*2+1];
+                        tri_verts.push_back(x);
+                        tri_verts.push_back(y);
+                        //my_print(std::to_wstring(edge));
+                    }
+                    callback(triangle_id, tri_verts);
+                }
+
+            }
+        }
+    };
+
     //image_drawer drawer(canvas.image());
      auto draw_edges = [&drawer, &canvas, width_height](edge_t cell_id, double_pair_t e1, double_pair_t e2) {
          drawer.pen_color(0, 0, 0);
@@ -936,7 +973,7 @@ int main(int, char**)
          draw_a_to_b(e1, e2);
     
      };
-     auto draw_vertices = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<coord_t>& vertices) {
+     auto draw_vertices_coord = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<coord_t>& vertices) {
          drawer.pen_color(cell_id * 10, 0, 0);
          auto draw_a_to_b = [&drawer, &canvas, width_height](coord_t& a, coord_t& b) {
              if (a.first == delaunator::INVALID_INDEX ||
@@ -984,6 +1021,48 @@ int main(int, char**)
 
          }
      };
+     auto draw_vertices_doubles = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<double>& vertices) {
+         drawer.pen_color(cell_id * 10, 0, 0);
+         auto draw_a_to_b = [&drawer, &canvas, width_height](double x1, double y1, double x2, double y2) {
+             if (x1== delaunator::INVALID_INDEX ||
+                 y1 == delaunator::INVALID_INDEX ||
+                 x2 == delaunator::INVALID_INDEX ||
+                 y2 == delaunator::INVALID_INDEX) {
+                 return;
+             }
+             //std::wstringstream ss;
+             //ss << "Drawing Vert: ";
+             //ss << "(" << a.first << ", " << a.second << ") ";
+             //ss << "(" << b.first << ", " << b.second << ") ";
+             //my_print(ss.str());
+
+
+             drawer.pen_color(255, 0, 255);
+             //drawer.pen_width(20);
+             //no need for offsets here either
+             drawer.line_segment(x1, y1, x2, y2);
+         };
+    
+         auto size = vertices.size();
+         if (size <= 1) {
+             my_print(L"skipping: num vertices: " + std::to_wstring(size));
+             return;
+         }
+    
+         my_print(L"num vertices: "+std::to_wstring(size));
+         for (unsigned int i = 0; i < size-3; i+=2) {
+             if (i != size - 3){
+                 double x1 = vertices[i + 0];
+                 double y1 = vertices[i + 1];
+                 double x2 = vertices[i + 2];
+                 double y2 = vertices[i + 3];
+                 draw_a_to_b(x1, y1, x2, y2);
+             } else {
+                 draw_a_to_b(vertices[i], vertices[i+1], vertices[0], vertices[1]);
+             }
+
+         }
+     };
 
     //delaunator::Delaunator delaunator2(points);
     //canvas.image().clear();
@@ -993,7 +1072,8 @@ int main(int, char**)
     //canvas.image().clear();
     //canvas.image().set_all_channels(240, 240, 240);
     //forEachVoronoiEdge(*del, draw_edges);
-    forEachVoronoiCell(*del, draw_vertices);
+    forEachVoronoiCell(*del, draw_vertices_coord);
+    //forEachVoronoiTriangle(*del, draw_vertices);
 
     //canvas.image().save_image("delaunator_output_vornoi.bmp");
 
