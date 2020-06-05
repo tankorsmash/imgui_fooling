@@ -1054,26 +1054,35 @@ int main(int, char**)
                 //delanay triangle
                 float distance = -1.0f;
                 float cell_id = -1.0f;
-                for(std::size_t i = 0; i < del->triangles.size(); i+=3) {
-                    int x1 = del->coords[2 * del->triangles[i]];         //tx0
-                    int y1 = del->coords[2 * del->triangles[i] + 1];     //ty0
-                    int x2 = del->coords[2 * del->triangles[i + 1]];     //tx1
-                    int y2 = del->coords[2 * del->triangles[i + 1] + 1]; //ty1
-                    int x3 = del->coords[2 * del->triangles[i + 2]];    //tx2
-                    int y3 = del->coords[2 * del->triangles[i + 2] + 1];  //ty2
+                //for(std::size_t i = 0; i < del->triangles.size(); i+=3) {
+                //    int x1 = del->coords[2 * del->triangles[i]];         //tx0
+                //    int y1 = del->coords[2 * del->triangles[i] + 1];     //ty0
+                //    int x2 = del->coords[2 * del->triangles[i + 1]];     //tx1
+                //    int y2 = del->coords[2 * del->triangles[i + 1] + 1]; //ty1
+                //    int x3 = del->coords[2 * del->triangles[i + 2]];    //tx2
+                //    int y3 = del->coords[2 * del->triangles[i + 2] + 1];  //ty2
 
-                    coord_t mouse_pos_pair = std::make_pair(mouse_pos.x, mouse_pos.y);
+                //    coord_t mouse_pos_pair = std::make_pair(mouse_pos.x, mouse_pos.y);
 
-                    //bool point_in_tri = PointInTriangle(
-                    //    std::make_pair(148, 345), std::make_pair(189, 349),
-                    //    std::make_pair(137, 306), std::make_pair(84, 471)
-                    //);
-                    bool point_in_tri = PointInTriangle(
-                        mouse_pos_pair, std::make_pair(x1, y1),
-                        std::make_pair(x2, y2), std::make_pair(x3, y3)
-                    );
-                    if (point_in_tri) {
+                //    bool point_in_tri = PointInTriangle(
+                //        mouse_pos_pair, std::make_pair(x1, y1),
+                //        std::make_pair(x2, y2), std::make_pair(x3, y3)
+                //    );
+                //    if (point_in_tri) {
+                //        cell_id = i;
+                //    }
+                //}
+
+                double min_distance = 99999;
+                for (int i = 0; i < del->coords.size(); i+=2) {
+                    auto x = del->coords[i];
+                    auto y = del->coords[i+1];
+
+                    double dist = sqrt(pow(x - mouse_pos.x, 2)+ pow(y - mouse_pos.y, 2));
+                    if (dist < min_distance) {
                         cell_id = i;
+                        distance = dist;
+                        min_distance = dist;
                     }
                 }
 
