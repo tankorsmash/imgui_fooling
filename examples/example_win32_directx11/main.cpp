@@ -529,6 +529,12 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
         drawer->pen_color(0, 0, 0);
         drawer->circle(center.first, center.second, 5);
 
+        //draw the centers of each point bluish
+        drawer->pen_color(0, 255, 255);
+        drawer->circle(x1, y1, 5);
+        drawer->circle(x2, y2, 5);
+        drawer->circle(x3, y3, 5);
+
     }
     canvas->image().save_image("delaunator_output.bmp");
 
