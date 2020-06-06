@@ -820,7 +820,8 @@ int main(int, char**)
         auto edges = edgesOfTriangle(tri_id);
 
         std::vector<size_t> points;
-        auto find_tri_for_edge = [delaunator](edge_t e) -> size_t{ return delaunator.triangles[e]; };
+        points.reserve(3);
+        auto find_tri_for_edge = [&delaunator](edge_t e) -> size_t{ return delaunator.triangles[e]; };
         std::transform(edges.begin(), edges.end(), std::back_inserter(points), find_tri_for_edge);
 
         return points;
