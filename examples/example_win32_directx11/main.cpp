@@ -36,6 +36,7 @@ static int rng_seed = 12345;
     using v_double_t = std::vector<double>;
     using double_pair_t = std::pair<double, double>;
     using v_double_pair_t = std::vector<double_pair_t>;
+    static v_double_t ORIG_POINTS{};
 
 //josh
 struct ColorData
@@ -501,8 +502,9 @@ ColorData create_voronoi_color_data(int width_height, int /*rng_seed*/)
     return color_data;
 }
 
-delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, cartesian_canvas* canvas, image_drawer* drawer)
+delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& points, cartesian_canvas* canvas, image_drawer* drawer)
 {
+    //v_double_t points2 = points;
     delaunator::Delaunator* del = new delaunator::Delaunator(points);
     canvas->image().clear();
     canvas->image().set_all_channels(240, 240, 240);
@@ -529,7 +531,7 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
 
         drawer->pen_color(0, 0, 0);
         auto center = circumcenter(double_pair_t{x1, y1}, double_pair_t{x2, y2}, double_pair_t{x3, y3});
-        drawer->circle(center.first, center.second, 5);
+        //drawer->circle(center.first, center.second, 5);
 
         //draw the centers of each point bluish
         //drawer->pen_color(255, 0, 0);
@@ -552,12 +554,12 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
 
     }
 
-    for (int i = 0; i < del->coords.size(); i+=2) {
+    for (int i = 0; i < ORIG_POINTS.size(); i+=2) {
         drawer->pen_color(23, 255, 200);
+        auto x = ORIG_POINTS[i];
+        auto y = ORIG_POINTS[i+1];
         drawer->circle(
-            del->coords[i],
-             del->coords[i + 1],
-            3
+            x, y, 3
         );
         //drawer->rectangle(
         //    del->coords[i],
@@ -575,16 +577,19 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
 {
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rng_seed); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> distrib(0, color_data.width);
+    std::uniform_int_distribution<> distrib(0, 100);
     //std::uniform_int_distribution<> y_distrib(0, color_data.height);
     points.clear();
     point_pairs.clear();
+    ORIG_POINTS.clear();
 
      for (int i = 0; i < num_points; i++) {
          int x = distrib(gen);
          int y = distrib(gen);
          points.push_back((double)x);
          points.push_back((double)y);
+         ORIG_POINTS.push_back((double)x);
+         ORIG_POINTS.push_back((double)y);
          //std::wstringstream ss;
          //ss << "X: " << x << ", Y: " << y;
          //my_print(ss.str());
