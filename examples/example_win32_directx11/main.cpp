@@ -700,7 +700,7 @@ int main(int, char**)
     color_data.blue  = new unsigned char [color_data.height*color_data.width];
 
 
-    int num_points = 20;
+    int num_points = 50;
     std::vector<double>  points{};
     v_double_pair_t point_pairs;
 
@@ -906,7 +906,6 @@ int main(int, char**)
              //my_print(ss.str());
 
 
-             drawer.pen_color(100, 0, 255);
              //no need for offsets here either
              drawer.line_segment(a.first, a.second, b.first, b.second);
          };
@@ -930,20 +929,23 @@ int main(int, char**)
              //    vertices[i + 2].first, vertices[i + 2].second
              //);
              if (i != size - 1){
+                 drawer.pen_color(100, 0, 255);
                  draw_a_to_b(vertices[i], vertices[i + 1]);
              } else {
+                 drawer.pen_color(100, 0, 255);
                  draw_a_to_b(vertices[i], vertices[0]);
              }
          }
 
-         if (cell_id ==56 ) //TODO replace 5 with whereever the mouse pos is
+         if (cell_id == 2 ) //TODO replace 5 with whereever the mouse pos is
          {
              for (unsigned int i = 0; i < size; i += 1) {
                  for (unsigned int j = 0; j < size; j += 1) {
                      //std::wstringstream ss;
                      //ss << i << " " << j;
                      //my_print(ss.str());
-                     draw_a_to_b(vertices[j], vertices[i]);
+                     drawer.pen_color(0, 0, 0);
+                     draw_a_to_b(vertices[i], vertices[j]);
                  }
              }
          }
