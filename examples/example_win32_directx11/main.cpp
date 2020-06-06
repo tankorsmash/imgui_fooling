@@ -552,13 +552,13 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
     points.clear();
     point_pairs.clear();
 
-    // for (int i = 0; i < num_points; i++) {
-    //     int x = distrib(gen);
-    //     int y = distrib(gen);
-    //     points.push_back((double)x);
-    //     points.push_back((double)y);
-    //     edge_points.push_back(std::make_pair((double)x, (double)y));
-    // }
+     for (int i = 0; i < num_points; i++) {
+         int x = distrib(gen);
+         int y = distrib(gen);
+         points.push_back((double)x);
+         points.push_back((double)y);
+         //edge_points.push_back(std::make_pair((double)x, (double)y));
+     }
 
     point_pairs.push_back(std::make_pair(338, 601));
     point_pairs.push_back(std::make_pair(357, 469));
@@ -936,9 +936,7 @@ int main(int, char**)
                 std::transform(BEND(edges), std::back_inserter(triangles), triangleOfEdge);
 
                 std::vector<coord_t> vertices{};
-                my_print(L"cell:");
                 for (edge_t& triangle_id: triangles) {
-                    my_print(L"triangle:");
                     auto triangle_edges = pointsOfTriangle(*del, triangle_id);
                     v_double_t tri_verts;
                     for (auto& el: triangle_edges) {
@@ -946,7 +944,6 @@ int main(int, char**)
                         auto y = del->coords[el*2+1];
                         tri_verts.push_back(x);
                         tri_verts.push_back(y);
-                        //my_print(std::to_wstring(edge));
                     }
                     callback(triangle_id, tri_verts);
                 }
@@ -959,11 +956,11 @@ int main(int, char**)
      auto draw_edges = [&drawer, &canvas, width_height](edge_t cell_id, double_pair_t e1, double_pair_t e2) {
          drawer.pen_color(0, 0, 0);
          auto draw_a_to_b = [&drawer, &canvas, width_height](double_pair_t& a, double_pair_t& b) {
-             std::wstringstream ss;
-             ss << "Drawing Edge: ";
-             ss << "(" << a.first << ", " << a.second << ") ";
-             ss << "(" << b.first << ", " << b.second << ") ";
-             my_print(ss.str());
+             //std::wstringstream ss;
+             //ss << "Drawing Edge: ";
+             //ss << "(" << a.first << ", " << a.second << ") ";
+             //ss << "(" << b.first << ", " << b.second << ") ";
+             //my_print(ss.str());
              int mul = 4;
              int x_offset = -(width_height/2);
              int y_offset = (width_height/2);
@@ -999,7 +996,7 @@ int main(int, char**)
 
          auto size = vertices.size();
          if (size <= 1) {
-             my_print(L"skipping: num vertices: " + std::to_wstring(size));
+             //my_print(L"skipping: num vertices: " + std::to_wstring(size));
              return;
          }
 
@@ -1026,9 +1023,9 @@ int main(int, char**)
          {
              for (unsigned int i = 0; i < size; i += 1) {
                  for (unsigned int j = 0; j < size; j += 1) {
-                     std::wstringstream ss;
-                     ss << i << " " << j;
-                     my_print(ss.str());
+                     //std::wstringstream ss;
+                     //ss << i << " " << j;
+                     //my_print(ss.str());
                      draw_a_to_b(vertices[j], vertices[i]);
                  }
              }
@@ -1131,7 +1128,8 @@ int main(int, char**)
             if (ImGui::InputInt("Voronoi Seed", &rng_seed, 1, 100)) {
 
                 regenerate_canvas();
-                forEachVoronoiEdge(*del, draw_edges);
+                //forEachVoronoiEdge(*del, draw_edges);
+                forEachVoronoiCell(*del, draw_vertices_coord);
                 TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
             }
 
@@ -1140,7 +1138,8 @@ int main(int, char**)
                 //ColorData color_data = create_voronoi_color_data(width_height, rng_seed);
                 //TEXTURE_DATA = create_texture_from_rgb_array(color_data);
                 regenerate_canvas();
-                forEachVoronoiEdge(*del, draw_edges);
+                //forEachVoronoiEdge(*del, draw_edges);
+                forEachVoronoiCell(*del, draw_vertices_coord);
                 TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
             }
             ImGui::Text("pointer = %p", TEXTURE_DATA->texture_id);
