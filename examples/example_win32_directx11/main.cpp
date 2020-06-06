@@ -554,10 +554,24 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
 
     }
 
-    for (int i = 0; i < ORIG_POINTS.size(); i+=2) {
+    //for (int i = 0; i < ORIG_POINTS.size(); i+=2) {
+    //    drawer->pen_color(23, 255, 200);
+    //    auto x = ORIG_POINTS[i];
+    //    auto y = ORIG_POINTS[i+1];
+    //    drawer->circle(
+    //        x, y, 3
+    //    );
+    //    //drawer->rectangle(
+    //    //    del->coords[i],
+    //    //    del->coords[i+1],
+    //    //    del->coords[i+2],
+    //    //    del->coords[i+3]
+    //    //);
+    //}
+    for (int i = 0; i < del->coords.size(); i+=2) {
         drawer->pen_color(23, 255, 200);
-        auto x = ORIG_POINTS[i];
-        auto y = ORIG_POINTS[i+1];
+        auto x = del->coords[i];
+        auto y = del->coords[i+1];
         drawer->circle(
             x, y, 3
         );
@@ -577,7 +591,7 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
 {
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rng_seed); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> distrib(0, 100);
+    std::uniform_int_distribution<> distrib(0, color_data.width);
     //std::uniform_int_distribution<> y_distrib(0, color_data.height);
     points.clear();
     point_pairs.clear();
@@ -596,140 +610,6 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
          //edge_points.push_back(std::make_pair((double)x, (double)y));
      }
 
-    point_pairs.push_back(std::make_pair(338, 601));
-    point_pairs.push_back(std::make_pair(357, 469));
-    point_pairs.push_back(std::make_pair(200, 583));
-    point_pairs.push_back(std::make_pair(424, 634));
-    point_pairs.push_back(std::make_pair(302, 516));
-    point_pairs.push_back(std::make_pair(265, 650));
-    point_pairs.push_back(std::make_pair(459, 570));
-    point_pairs.push_back(std::make_pair(367, 723));
-    point_pairs.push_back(std::make_pair(453, 454));
-    point_pairs.push_back(std::make_pair(220, 472));
-    point_pairs.push_back(std::make_pair(326, 367));
-    point_pairs.push_back(std::make_pair(424, 369));
-    point_pairs.push_back(std::make_pair(393, 544));
-    point_pairs.push_back(std::make_pair(121, 661));
-    point_pairs.push_back(std::make_pair(180, 704));
-    point_pairs.push_back(std::make_pair(126, 516));
-    point_pairs.push_back(std::make_pair(87,  588));
-    point_pairs.push_back(std::make_pair(523, 614));
-    point_pairs.push_back(std::make_pair(472, 730));
-    point_pairs.push_back(std::make_pair(277, 751));
-    point_pairs.push_back(std::make_pair(585, 554));
-    point_pairs.push_back(std::make_pair(532, 497));
-    point_pairs.push_back(std::make_pair(351, 835));
-    point_pairs.push_back(std::make_pair(450, 819));
-    point_pairs.push_back(std::make_pair(511, 377));
-    point_pairs.push_back(std::make_pair(586, 429));
-    point_pairs.push_back(std::make_pair(251, 396));
-    point_pairs.push_back(std::make_pair(164, 416));
-    point_pairs.push_back(std::make_pair(224, 322));
-    point_pairs.push_back(std::make_pair(299, 238));
-    point_pairs.push_back(std::make_pair(404, 275));
-    point_pairs.push_back(std::make_pair(470, 315));
-    point_pairs.push_back(std::make_pair(121, 762));
-    point_pairs.push_back(std::make_pair(2,   630));
-    point_pairs.push_back(std::make_pair(21,  699));
-    point_pairs.push_back(std::make_pair(186, 828));
-    point_pairs.push_back(std::make_pair(40,  412));
-    point_pairs.push_back(std::make_pair(28,  496));
-    point_pairs.push_back(std::make_pair(572, 699));
-    point_pairs.push_back(std::make_pair(646, 616));
-    point_pairs.push_back(std::make_pair(566, 811));
-    point_pairs.push_back(std::make_pair(275, 856));
-    point_pairs.push_back(std::make_pair(622, 493));
-    point_pairs.push_back(std::make_pair(720, 565));
-    point_pairs.push_back(std::make_pair(382, 945));
-    point_pairs.push_back(std::make_pair(257, 933));
-    point_pairs.push_back(std::make_pair(475, 895));
-    point_pairs.push_back(std::make_pair(554, 890));
-    point_pairs.push_back(std::make_pair(512, 255));
-    point_pairs.push_back(std::make_pair(627, 367));
-    point_pairs.push_back(std::make_pair(570, 314));
-    point_pairs.push_back(std::make_pair(712, 448));
-    point_pairs.push_back(std::make_pair(126, 337));
-    point_pairs.push_back(std::make_pair(122, 265));
-    point_pairs.push_back(std::make_pair(212, 216));
-    point_pairs.push_back(std::make_pair(397, 183));
-    point_pairs.push_back(std::make_pair(326, 154));
-    point_pairs.push_back(std::make_pair(35 , 833));
-    point_pairs.push_back(std::make_pair(117, 848));
-    point_pairs.push_back(std::make_pair(145, 935));
-    point_pairs.push_back(std::make_pair(58,  296));
-    point_pairs.push_back(std::make_pair(652, 769));
-    point_pairs.push_back(std::make_pair(653, 686));
-    point_pairs.push_back(std::make_pair(770, 664));
-    point_pairs.push_back(std::make_pair(628, 884));
-    point_pairs.push_back(std::make_pair(697, 846));
-    point_pairs.push_back(std::make_pair(816, 549));
-    point_pairs.push_back(std::make_pair(454, 980));
-    point_pairs.push_back(std::make_pair(586, 971));
-    point_pairs.push_back(std::make_pair(670, 968));
-    point_pairs.push_back(std::make_pair(508, 119));
-    point_pairs.push_back(std::make_pair(573, 179));
-    point_pairs.push_back(std::make_pair(697, 247));
-    point_pairs.push_back(std::make_pair(755, 324));
-    point_pairs.push_back(std::make_pair(625, 264));
-    point_pairs.push_back(std::make_pair(783, 442));
-    point_pairs.push_back(std::make_pair(73,  178));
-    point_pairs.push_back(std::make_pair(142, 186));
-    point_pairs.push_back(std::make_pair(188, 123));
-    point_pairs.push_back(std::make_pair(408,  98));
-    point_pairs.push_back(std::make_pair(318,  68));
-    point_pairs.push_back(std::make_pair(21,  948));
-    point_pairs.push_back(std::make_pair(9,   207));
-    point_pairs.push_back(std::make_pair(782, 761));
-    point_pairs.push_back(std::make_pair(717, 730));
-    point_pairs.push_back(std::make_pair(854, 729));
-    point_pairs.push_back(std::make_pair(894, 659));
-    point_pairs.push_back(std::make_pair(741, 916));
-    point_pairs.push_back(std::make_pair(815, 896));
-    point_pairs.push_back(std::make_pair(884, 580));
-    point_pairs.push_back(std::make_pair(856, 416));
-    point_pairs.push_back(std::make_pair(898, 511));
-    point_pairs.push_back(std::make_pair(804, 996));
-    point_pairs.push_back(std::make_pair(599,  69));
-    point_pairs.push_back(std::make_pair(472,  10));
-    point_pairs.push_back(std::make_pair(665, 138));
-    point_pairs.push_back(std::make_pair(821, 232));
-    point_pairs.push_back(std::make_pair(775, 147));
-    point_pairs.push_back(std::make_pair(884, 279));
-    point_pairs.push_back(std::make_pair(98,   53));
-    point_pairs.push_back(std::make_pair(17,   94));
-    point_pairs.push_back(std::make_pair(208,  28));
-    point_pairs.push_back(std::make_pair(381,   5));
-    point_pairs.push_back(std::make_pair(91,  980));
-    point_pairs.push_back(std::make_pair(836, 811));
-    point_pairs.push_back(std::make_pair(918, 766));
-    point_pairs.push_back(std::make_pair(974, 706));
-    point_pairs.push_back(std::make_pair(900, 843));
-    point_pairs.push_back(std::make_pair(962, 580));
-    point_pairs.push_back(std::make_pair(939, 930));
-    point_pairs.push_back(std::make_pair(874, 969));
-    point_pairs.push_back(std::make_pair(970, 492));
-    point_pairs.push_back(std::make_pair(958, 327));
-    point_pairs.push_back(std::make_pair(938, 405));
-    point_pairs.push_back(std::make_pair(567,   0));
-    point_pairs.push_back(std::make_pair(700,  16));
-    point_pairs.push_back(std::make_pair(910, 184));
-    point_pairs.push_back(std::make_pair(863, 106));
-    point_pairs.push_back(std::make_pair(956, 248));
-    point_pairs.push_back(std::make_pair(780,  21));
-    point_pairs.push_back(std::make_pair(890, 354));
-    point_pairs.push_back(std::make_pair(987, 801));
-    point_pairs.push_back(std::make_pair(979,  96));
-    point_pairs.push_back(std::make_pair(742 , 82));
-    point_pairs.push_back(std::make_pair(917,  44));
-    point_pairs.push_back(std::make_pair(853,  14));
-    point_pairs.push_back(std::make_pair(986, 876));
-    point_pairs.push_back(std::make_pair(986, 171));
-    point_pairs.push_back(std::make_pair(980,  11));
-
-    for (auto& edge_point: point_pairs) {
-        points.push_back(edge_point.first);
-        points.push_back(edge_point.second);
-    }
 
 }
 
