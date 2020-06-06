@@ -514,7 +514,7 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
         double y2 = del->coords[2 * del->triangles[i + 1] + 1]; //ty1
         double x3 = del->coords[2 * del->triangles[i + 2] + 0]; //tx2
         double y3 = del->coords[2 * del->triangles[i + 2] + 1]; //ty2
-        //drawer->triangle( x1, y1, x2, y2, x3, y3 );
+        drawer->triangle( x1, y1, x2, y2, x3, y3 );
 
         //drawer->triangle(
         //    del->coords[2 * del->triangles[i]],         //tx0
@@ -527,18 +527,44 @@ delaunator::Delaunator* draw_del_points_to_canvas(std::vector<double>& points, c
 
 
 
-        auto center = circumcenter(double_pair_t{x1, y1}, double_pair_t{x2, y2}, double_pair_t{x3, y3});
         drawer->pen_color(0, 0, 0);
-        //drawer->circle(center.first, center.second, 5);
+        auto center = circumcenter(double_pair_t{x1, y1}, double_pair_t{x2, y2}, double_pair_t{x3, y3});
+        drawer->circle(center.first, center.second, 5);
 
         //draw the centers of each point bluish
-        drawer->pen_color(255, 0, 0);
-        drawer->circle(x1, y1, 5);
-        drawer->pen_color(0, 255, 0);
-        drawer->circle(x2, y2, 5);
-        drawer->pen_color(0, 0, 255);
-        drawer->circle(x3, y3, 5);
+        //drawer->pen_color(255, 0, 0);
+        //my_print(L"Circles:");
+        //std::wstringstream ss;
+        //ss << "X1: " << x1 << ", Y1: " << y1;
+        //my_print(ss.str());
+        //ss.str(L" ");
+        //drawer->circle(x1, y1, 5);
+        //drawer->pen_color(0, 255, 0);
+        //ss << "X2: " << x2 << ", Y2: " << y2;
+        //my_print(ss.str());
+        //ss.str(L" ");
+        //drawer->circle(x2, y2, 5);
+        //ss << "X3: " << x3 << ", Y3: " << y2;
+        //my_print(ss.str());
+        //ss.str(L" ");
+        //drawer->pen_color(0, 0, 255);
+        //drawer->circle(x3, y3, 5);
 
+    }
+
+    for (int i = 0; i < del->coords.size(); i+=2) {
+        drawer->pen_color(23, 255, 200);
+        drawer->circle(
+            del->coords[i],
+             del->coords[i + 1],
+            3
+        );
+        //drawer->rectangle(
+        //    del->coords[i],
+        //    del->coords[i+1],
+        //    del->coords[i+2],
+        //    del->coords[i+3]
+        //);
     }
     canvas->image().save_image("delaunator_output.bmp");
 
@@ -559,9 +585,9 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
          int y = distrib(gen);
          points.push_back((double)x);
          points.push_back((double)y);
-         std::wstringstream ss;
-         ss << "X: " << x << ", Y: " << y;
-         my_print(ss.str());
+         //std::wstringstream ss;
+         //ss << "X: " << x << ", Y: " << y;
+         //my_print(ss.str());
          //edge_points.push_back(std::make_pair((double)x, (double)y));
      }
 
@@ -855,6 +881,7 @@ int main(int, char**)
             return double_pair_t{delaunator.coords.at(tri_point*2), delaunator.coords.at(tri_point*2 + 1)};
         });
 
+        //auto result = circumcenter(vertices[0], vertices[1], vertices[2]);
         auto result = delaunator::circumcenter(
             vertices[0].first, vertices[0].second,
             vertices[1].first, vertices[1].second,
@@ -971,8 +998,8 @@ int main(int, char**)
              int x_offset = -(width_height/2);
              int y_offset = (width_height/2);
              int offset = 0;
-             canvas.line_segment(a.first + x_offset, + y_offset - a.second , b.first + x_offset,  y_offset - b.second);
-             //drawer.line_segment(a.first, a.second, b.first, b.second);
+             //canvas.line_segment(a.first + x_offset, + y_offset - a.second , b.first + x_offset,  y_offset - b.second);
+             drawer.line_segment(a.first, a.second, b.first, b.second);
          };
 
          draw_a_to_b(e1, e2);
@@ -994,7 +1021,7 @@ int main(int, char**)
              //my_print(ss.str());
 
 
-             drawer.pen_color(255, 0, 255);
+             drawer.pen_color(100, 0, 255);
              //no need for offsets here either
              drawer.line_segment(a.first, a.second, b.first, b.second);
          };
@@ -1052,7 +1079,7 @@ int main(int, char**)
              //my_print(ss.str());
 
 
-             drawer.pen_color(255, 0, 255);
+             drawer.pen_color(100, 0, 255);
              //no need for offsets here either
              drawer.line_segment(x1, y1, x2, y2);
          };
