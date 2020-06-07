@@ -666,7 +666,38 @@ void draw_a_to_b(double_pair_t& a, double_pair_t& b) {
     int y_offset = (width_height / 2);
     int offset = 0;
     //canvas.line_segment(a.first + x_offset, + y_offset - a.second , b.first + x_offset,  y_offset - b.second);
+
+    if (a.first > 10000 || a.second > 10000 || b.first > 10000 || b.second > 100000) {
+        __debugbreak();
+        return;
+    }
     drawer.line_segment(a.first, a.second, b.first, b.second);
+};
+
+void draw_a_to_b(double x1, double y1, double x2, double y2)
+{
+    draw_a_to_b(double_pair_t{x1, y1}, double_pair_t{x2, y2});
+}
+
+void draw_a_to_b(coord_t& a, coord_t& b) {
+    if (a.first == delaunator::INVALID_INDEX ||
+        a.second == delaunator::INVALID_INDEX ||
+        b.first == delaunator::INVALID_INDEX ||
+        b.second == delaunator::INVALID_INDEX) {
+        return;
+    }
+
+    //no need for offsets here either
+    unsigned x1 = a.first;
+    unsigned y1 = a.second;
+    unsigned x2 = b.first;
+    unsigned y2 = b.second;
+    drawer.line_segment(x1, y1, x2, y2);
+
+    //cant do this because the unsigned needs to convert into an int for
+    //line_segment, whereas my draw_a_to_b accepts doubles and breaks
+    //conversions up for reasons I dont understand
+    //draw_a_to_b(a.first, a.second, b.first, b.second);
 };
 
 
@@ -903,61 +934,19 @@ int main(int, char**)
     //image_drawer drawer(canvas.image());
      auto draw_edges = [](edge_t cell_id, double_pair_t e1, double_pair_t e2) {
          drawer.pen_color(0, 0, 0);
-         auto draw_a_to_b = [](double_pair_t& a, double_pair_t& b) {
-             //std::wstringstream ss;
-             //ss << "Drawing Edge: ";
-             //ss << "(" << a.first << ", " << a.second << ") ";
-             //ss << "(" << b.first << ", " << b.second << ") ";
-             //my_print(ss.str());
-             int mul = 4;
-             int x_offset = -(width_height/2);
-             int y_offset = (width_height/2);
-             int offset = 0;
-             //canvas.line_segment(a.first + x_offset, + y_offset - a.second , b.first + x_offset,  y_offset - b.second);
-             drawer.line_segment(a.first, a.second, b.first, b.second);
-         };
 
          draw_a_to_b(e1, e2);
 
      };
      auto draw_vertices_coord_with_id = [](edge_t cell_id, std::vector<coord_t>& vertices, double point_id) {
          drawer.pen_color(cell_id * 10, 0, 0);
-         auto draw_a_to_b = [](coord_t& a, coord_t& b) {
-             if (a.first == delaunator::INVALID_INDEX ||
-                 a.second == delaunator::INVALID_INDEX ||
-                 b.first == delaunator::INVALID_INDEX ||
-                 b.second == delaunator::INVALID_INDEX) {
-                 return;
-             }
-             //std::wstringstream ss;
-             //ss << "Drawing Vert: ";
-             //ss << "(" << a.first << ", " << a.second << ") ";
-             //ss << "(" << b.first << ", " << b.second << ") ";
-             //my_print(ss.str());
-
-
-             //no need for offsets here either
-             drawer.line_segment(a.first, a.second, b.first, b.second);
-         };
 
          auto size = vertices.size();
          if (size <= 1) {
-             //my_print(L"skipping: num vertices: " + std::to_wstring(size));
              return;
          }
 
-         //my_print(L"num vertices: "+std::to_wstring(size));
          for (unsigned int i = 0; i < size; i+=1) {
-             auto lerp = [](edge_t val) {
-                 return 0 + val*(width_height-0);
-             };
-
-             //canvas.line_segment(lerp(a.first)-0.5, lerp(a.second)-0.5, lerp(b.first)-0.5, lerp(b.second)-0.5);
-             //canvas.fill_triangle(
-             //    vertices[i].first, vertices[i].second,
-             //    vertices[i + 1].first, vertices[i + 1].second,
-             //    vertices[i + 2].first, vertices[i + 2].second
-             //);
              if (i != size - 1){
                  drawer.pen_color(100, 0, 255);
                  draw_a_to_b(vertices[i], vertices[i + 1]);
@@ -982,23 +971,6 @@ int main(int, char**)
      };
      auto draw_vertices_coord = [](edge_t cell_id, std::vector<coord_t>& vertices) {
          drawer.pen_color(cell_id * 10, 0, 0);
-         auto draw_a_to_b = [](coord_t& a, coord_t& b) {
-             if (a.first == delaunator::INVALID_INDEX ||
-                 a.second == delaunator::INVALID_INDEX ||
-                 b.first == delaunator::INVALID_INDEX ||
-                 b.second == delaunator::INVALID_INDEX) {
-                 return;
-             }
-             //std::wstringstream ss;
-             //ss << "Drawing Vert: ";
-             //ss << "(" << a.first << ", " << a.second << ") ";
-             //ss << "(" << b.first << ", " << b.second << ") ";
-             //my_print(ss.str());
-
-
-             //no need for offsets here either
-             drawer.line_segment(a.first, a.second, b.first, b.second);
-         };
 
          auto size = vertices.size();
          if (size <= 1) {
@@ -1006,18 +978,11 @@ int main(int, char**)
              return;
          }
 
-         //my_print(L"num vertices: "+std::to_wstring(size));
          for (unsigned int i = 0; i < size; i+=1) {
              auto lerp = [](edge_t val) {
                  return 0 + val*(width_height-0);
              };
 
-             //canvas.line_segment(lerp(a.first)-0.5, lerp(a.second)-0.5, lerp(b.first)-0.5, lerp(b.second)-0.5);
-             //canvas.fill_triangle(
-             //    vertices[i].first, vertices[i].second,
-             //    vertices[i + 1].first, vertices[i + 1].second,
-             //    vertices[i + 2].first, vertices[i + 2].second
-             //);
              if (i != size - 1){
                  drawer.pen_color(100, 0, 255);
                  draw_a_to_b(vertices[i], vertices[i + 1]);
@@ -1042,24 +1007,6 @@ int main(int, char**)
      };
      auto draw_vertices_doubles = [](edge_t cell_id, std::vector<double>& vertices) {
          drawer.pen_color(cell_id * 10, 0, 0);
-         auto draw_a_to_b = [](double x1, double y1, double x2, double y2) {
-             if (x1== delaunator::INVALID_INDEX ||
-                 y1 == delaunator::INVALID_INDEX ||
-                 x2 == delaunator::INVALID_INDEX ||
-                 y2 == delaunator::INVALID_INDEX) {
-                 return;
-             }
-             //std::wstringstream ss;
-             //ss << "Drawing Vert: ";
-             //ss << "(" << a.first << ", " << a.second << ") ";
-             //ss << "(" << b.first << ", " << b.second << ") ";
-             //my_print(ss.str());
-
-
-             drawer.pen_color(100, 0, 255);
-             //no need for offsets here either
-             drawer.line_segment(x1, y1, x2, y2);
-         };
 
          auto size = vertices.size();
          if (size <= 1) {
