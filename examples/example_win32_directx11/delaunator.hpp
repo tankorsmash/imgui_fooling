@@ -433,7 +433,10 @@ double Delaunator::get_hull_area() {
     std::vector<double> hull_area;
     size_t e = hull_start;
     do {
-        hull_area.push_back((coords[2 * e] - coords[2 * hull_prev[e]]) * (coords[2 * e + 1] + coords[2 * hull_prev[e] + 1]));
+        hull_area.push_back(
+            (coords[2 * e] - coords[2 * hull_prev[e]]) *
+            (coords[2 * e + 1] + coords[2 * hull_prev[e] + 1])
+        );
         e = hull_next[e];
     } while (e != hull_start);
     return sum(hull_area);

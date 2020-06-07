@@ -651,6 +651,23 @@ bool PointInTriangle(coord_t p, coord_t p0, coord_t p1, coord_t p2) {
 //    return !(has_neg && has_pos);
 //}
 
+static int width_height = 512 * 1;
+static cartesian_canvas canvas(width_height, width_height);
+static image_drawer drawer(canvas.image());
+static delaunator::Delaunator* del;
+void draw_a_to_b(double_pair_t& a, double_pair_t& b) {
+    //std::wstringstream ss;
+    //ss << "Drawing Edge: ";
+    //ss << "(" << a.first << ", " << a.second << ") ";
+    //ss << "(" << b.first << ", " << b.second << ") ";
+    //my_print(ss.str());
+    int mul = 4;
+    int x_offset = -(width_height / 2);
+    int y_offset = (width_height / 2);
+    int offset = 0;
+    //canvas.line_segment(a.first + x_offset, + y_offset - a.second , b.first + x_offset,  y_offset - b.second);
+    drawer.line_segment(a.first, a.second, b.first, b.second);
+};
 
 
 int main(int, char**)
@@ -692,7 +709,6 @@ int main(int, char**)
     //bool ret = LoadTextureFromFile("panel.png", &my_texture, &my_image_width, &my_image_height);
 
     ColorData color_data;
-    int width_height = 512*1;
     color_data.width = width_height;
     color_data.height = width_height;
     color_data.red   = new unsigned char [color_data.height*color_data.width];
@@ -704,9 +720,6 @@ int main(int, char**)
     std::vector<double>  points{};
     v_double_pair_t point_pairs;
 
-    cartesian_canvas canvas(width_height, width_height);
-    image_drawer drawer(canvas.image());
-    delaunator::Delaunator* del;
     auto regenerate_canvas = [&]() {
         generate_points_for_del(width_height, color_data, num_points, points, point_pairs);
         del = draw_del_points_to_canvas(points, &canvas, &drawer);
@@ -834,9 +847,26 @@ int main(int, char**)
                 callback(triangle_id, vertices);
             }
         }
+
+
+        drawer.pen_color(0, 255, 0);
+
+
+        std::vector<double> hull_area;
+        size_t e = del->hull_start;
+        do {
+            double x1 = del->coords[2 * e];
+            double y1 = del->coords[2 * e + 1];
+            double x2 = del->coords[2 * del->hull_prev[e]];
+            double y2 = del->coords[2 * del->hull_prev[e] + 1];
+            draw_a_to_b(double_pair_t{x1, y1}, double_pair_t{x2, y2});
+            e = del->hull_next[e];
+        } while (e != del->hull_start);
+
+            
     };
 
-    auto forEachVoronoiTriangle = [nextHalfEdge, edgesAroundPoint, triangleOfEdge, triangleCenter, pointsOfTriangle, del](
+    auto forEachVoronoiTriangle = [nextHalfEdge, edgesAroundPoint, triangleOfEdge, triangleCenter, pointsOfTriangle](
         delaunator::Delaunator& delaunator,
         std::function<void(edge_t, std::vector<double>)> callback) {
 
@@ -871,9 +901,9 @@ int main(int, char**)
     };
 
     //image_drawer drawer(canvas.image());
-     auto draw_edges = [&drawer, &canvas, width_height](edge_t cell_id, double_pair_t e1, double_pair_t e2) {
+     auto draw_edges = [](edge_t cell_id, double_pair_t e1, double_pair_t e2) {
          drawer.pen_color(0, 0, 0);
-         auto draw_a_to_b = [&drawer, &canvas, width_height](double_pair_t& a, double_pair_t& b) {
+         auto draw_a_to_b = [](double_pair_t& a, double_pair_t& b) {
              //std::wstringstream ss;
              //ss << "Drawing Edge: ";
              //ss << "(" << a.first << ", " << a.second << ") ";
@@ -890,9 +920,9 @@ int main(int, char**)
          draw_a_to_b(e1, e2);
 
      };
-     auto draw_vertices_coord_with_id = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<coord_t>& vertices, double point_id) {
+     auto draw_vertices_coord_with_id = [](edge_t cell_id, std::vector<coord_t>& vertices, double point_id) {
          drawer.pen_color(cell_id * 10, 0, 0);
-         auto draw_a_to_b = [&drawer, &canvas, width_height](coord_t& a, coord_t& b) {
+         auto draw_a_to_b = [](coord_t& a, coord_t& b) {
              if (a.first == delaunator::INVALID_INDEX ||
                  a.second == delaunator::INVALID_INDEX ||
                  b.first == delaunator::INVALID_INDEX ||
@@ -918,7 +948,7 @@ int main(int, char**)
 
          //my_print(L"num vertices: "+std::to_wstring(size));
          for (unsigned int i = 0; i < size; i+=1) {
-             auto lerp = [width_height](edge_t val) {
+             auto lerp = [](edge_t val) {
                  return 0 + val*(width_height-0);
              };
 
@@ -950,9 +980,9 @@ int main(int, char**)
              }
          }
      };
-     auto draw_vertices_coord = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<coord_t>& vertices) {
+     auto draw_vertices_coord = [](edge_t cell_id, std::vector<coord_t>& vertices) {
          drawer.pen_color(cell_id * 10, 0, 0);
-         auto draw_a_to_b = [&drawer, &canvas, width_height](coord_t& a, coord_t& b) {
+         auto draw_a_to_b = [](coord_t& a, coord_t& b) {
              if (a.first == delaunator::INVALID_INDEX ||
                  a.second == delaunator::INVALID_INDEX ||
                  b.first == delaunator::INVALID_INDEX ||
@@ -978,7 +1008,7 @@ int main(int, char**)
 
          //my_print(L"num vertices: "+std::to_wstring(size));
          for (unsigned int i = 0; i < size; i+=1) {
-             auto lerp = [width_height](edge_t val) {
+             auto lerp = [](edge_t val) {
                  return 0 + val*(width_height-0);
              };
 
@@ -1010,9 +1040,9 @@ int main(int, char**)
              }
          }
      };
-     auto draw_vertices_doubles = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<double>& vertices) {
+     auto draw_vertices_doubles = [](edge_t cell_id, std::vector<double>& vertices) {
          drawer.pen_color(cell_id * 10, 0, 0);
-         auto draw_a_to_b = [&drawer, &canvas, width_height](double x1, double y1, double x2, double y2) {
+         auto draw_a_to_b = [](double x1, double y1, double x2, double y2) {
              if (x1== delaunator::INVALID_INDEX ||
                  y1 == delaunator::INVALID_INDEX ||
                  x2 == delaunator::INVALID_INDEX ||
@@ -1200,7 +1230,7 @@ int main(int, char**)
                                     cached_cell_id = cell_id;
                                 }
                             } else {
-                                my_print(L"no it doesn't");
+                                //my_print(L"no it doesn't");
                             }
                         }
                     }
