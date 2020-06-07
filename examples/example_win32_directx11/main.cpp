@@ -890,6 +890,66 @@ int main(int, char**)
          draw_a_to_b(e1, e2);
 
      };
+     auto draw_vertices_coord_with_id = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<coord_t>& vertices, double point_id) {
+         drawer.pen_color(cell_id * 10, 0, 0);
+         auto draw_a_to_b = [&drawer, &canvas, width_height](coord_t& a, coord_t& b) {
+             if (a.first == delaunator::INVALID_INDEX ||
+                 a.second == delaunator::INVALID_INDEX ||
+                 b.first == delaunator::INVALID_INDEX ||
+                 b.second == delaunator::INVALID_INDEX) {
+                 return;
+             }
+             //std::wstringstream ss;
+             //ss << "Drawing Vert: ";
+             //ss << "(" << a.first << ", " << a.second << ") ";
+             //ss << "(" << b.first << ", " << b.second << ") ";
+             //my_print(ss.str());
+
+
+             //no need for offsets here either
+             drawer.line_segment(a.first, a.second, b.first, b.second);
+         };
+
+         auto size = vertices.size();
+         if (size <= 1) {
+             //my_print(L"skipping: num vertices: " + std::to_wstring(size));
+             return;
+         }
+
+         //my_print(L"num vertices: "+std::to_wstring(size));
+         for (unsigned int i = 0; i < size; i+=1) {
+             auto lerp = [width_height](edge_t val) {
+                 return 0 + val*(width_height-0);
+             };
+
+             //canvas.line_segment(lerp(a.first)-0.5, lerp(a.second)-0.5, lerp(b.first)-0.5, lerp(b.second)-0.5);
+             //canvas.fill_triangle(
+             //    vertices[i].first, vertices[i].second,
+             //    vertices[i + 1].first, vertices[i + 1].second,
+             //    vertices[i + 2].first, vertices[i + 2].second
+             //);
+             if (i != size - 1){
+                 drawer.pen_color(100, 0, 255);
+                 draw_a_to_b(vertices[i], vertices[i + 1]);
+             } else {
+                 drawer.pen_color(100, 0, 255);
+                 draw_a_to_b(vertices[i], vertices[0]);
+             }
+         }
+
+         if (cell_id == point_id ) //TODO replace 5 with whereever the mouse pos is
+         {
+             for (unsigned int i = 0; i < size; i += 1) {
+                 for (unsigned int j = 0; j < size; j += 1) {
+                     //std::wstringstream ss;
+                     //ss << i << " " << j;
+                     //my_print(ss.str());
+                     drawer.pen_color(0, 0, 0);
+                     draw_a_to_b(vertices[i], vertices[j]);
+                 }
+             }
+         }
+     };
      auto draw_vertices_coord = [&drawer, &canvas, width_height](edge_t cell_id, std::vector<coord_t>& vertices) {
          drawer.pen_color(cell_id * 10, 0, 0);
          auto draw_a_to_b = [&drawer, &canvas, width_height](coord_t& a, coord_t& b) {
@@ -1040,6 +1100,8 @@ int main(int, char**)
             //josh edit
             ImGui::Begin("DirectX11 Texture Test");
 
+            ImGui::Text("framerate %f", ImGui::GetIO().Framerate);
+
             if (ImGui::InputInt("Voronoi Seed", &rng_seed, 1, 100)) {
 
                 regenerate_canvas();
@@ -1078,6 +1140,7 @@ int main(int, char**)
 
                 //delanay triangle
                 float distance = -1.0f;
+                static float cached_cell_id = -10.0f;
                 float cell_id = -1.0f;
                 //for(std::size_t i = 0; i < del->triangles.size(); i+=3) {
                 //    int x1 = del->coords[2 * del->triangles[i]];         //tx0
@@ -1124,9 +1187,18 @@ int main(int, char**)
                         double y = del->coords[i+1];
 
                         if (x == point.first) {
-                            my_print(L"found x. does y match?");
                             if (y == point.second) {
-                                my_print(L"yes it does!, the idx is " + std::to_wstring(i));
+                                if (cell_id != cached_cell_id){
+                                    canvas.image().clear();
+                                    canvas.image().set_all_channels(100, 100, 100);
+
+                                    forEachVoronoiCell(*del, [&](edge_t edge_id, std::vector<coord_t>& vertices){
+                                        draw_vertices_coord_with_id(edge_id, vertices, cell_id / 2);
+                                    });
+                                    TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
+
+                                    cached_cell_id = cell_id;
+                                }
                             } else {
                                 my_print(L"no it doesn't");
                             }
