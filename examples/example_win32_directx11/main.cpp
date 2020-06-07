@@ -1099,6 +1099,8 @@ int main(int, char**)
                 //}
 
                 double min_distance = 99999;
+                double found_x = -1;
+                double found_y = -1;
                 for (int i = 0; i < del->coords.size(); i+=2) {
                     auto x = del->coords[i];
                     auto y = del->coords[i+1];
@@ -1108,7 +1110,29 @@ int main(int, char**)
                         cell_id = i;
                         distance = dist;
                         min_distance = dist;
+
+                        found_x = x;
+                        found_y = y;
                     }
+                }
+
+                if (cell_id != -1) {
+                    double_pair_t point = {found_x, found_y};
+
+                    for (int i = 0; i < del->coords.size(); i+=2) {
+                        double x = del->coords[i];
+                        double y = del->coords[i+1];
+
+                        if (x == point.first) {
+                            my_print(L"found x. does y match?");
+                            if (y == point.second) {
+                                my_print(L"yes it does!, the idx is " + std::to_wstring(i));
+                            } else {
+                                my_print(L"no it doesn't");
+                            }
+                        }
+                    }
+                    //auto edges = edgesAroundPoint(*del, )
                 }
 
                 ImGui::LabelText("Distance, Id", "%f, %f", distance, cell_id);
