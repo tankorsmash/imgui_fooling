@@ -172,6 +172,7 @@
     <ClInclude Include="polygon_triangulate.hpp" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="ui.h" />
+    <ClInclude Include="voronoi.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp" />
