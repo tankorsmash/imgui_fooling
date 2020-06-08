@@ -979,14 +979,9 @@ int main(int, char**)
          }
 
          drawer.pen_color(255, 0, 0);
+         bool is_valid = true;
          for (edge_t i = 0; i < size; i += 1) {
              coord_t a = vertices[i];
-             auto ax = a.first;
-             auto ay = a.second;
-
-             double adx = ax;
-             double ady = ay;
-
              coord_t b = {0, 0};
              if (i != size - 1) {
                  b = vertices[i + 1];
@@ -994,7 +989,24 @@ int main(int, char**)
                  b = vertices[0];
              }
 
-             draw_a_to_b(a, b);
+             if ((!point_in_poly(hull_verts, a.first, a.second)) ||
+                 (!point_in_poly(hull_verts, b.first, b.second))) {
+                 is_valid = false;
+             }
+         }
+         if (is_valid) {
+             for (edge_t i = 0; i < size; i += 1) {
+                 coord_t a = vertices[i];
+                 coord_t b = {0, 0};
+                 if (i != size - 1) {
+                     b = vertices[i + 1];
+                 } else {
+                     b = vertices[0];
+                 }
+
+                 draw_a_to_b(a, b);
+             }
+
          }
 
          if (cell_id == point_id )
