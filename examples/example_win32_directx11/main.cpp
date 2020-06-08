@@ -852,20 +852,22 @@ int main(int, char**)
         delaunator::Delaunator& delaunator,
         std::function<void(edge_t, std::vector<coord_t>&)> callback) {
 
-        std::set<unsigned int> seen_points;
+        std::set<edge_t> seen_points;
         //for (const int& edge : delaunator.triangles) {
-        for (unsigned edge = 0; edge < delaunator.triangles.size(); edge++) {
+        for (edge_t edge = 0; edge < delaunator.triangles.size(); edge++) {
             auto next_edge = nextHalfEdge(edge);
-            unsigned int triangle_id = delaunator.triangles[next_edge];
+            edge_t triangle_id = delaunator.triangles[next_edge];
 
             if (std::find(BEND(seen_points), triangle_id) == seen_points.end()) {
                 seen_points.insert(triangle_id);
                 std::vector<edge_t> edges = edgesAroundPoint(delaunator, edge);
 
 
+                //get the triangle_id for each edge
                 std::vector<edge_t> triangles{};
                 std::transform(BEND(edges), std::back_inserter(triangles), triangleOfEdge);
 
+                //for each triangle found, calculate the circumcenter
                 std::vector<coord_t> vertices{};
                 std::transform(
                     BEND(triangles), std::back_inserter(vertices),
@@ -875,6 +877,7 @@ int main(int, char**)
                     }
                 );
 
+                //draw the triangle
                 callback(triangle_id, vertices);
             }
         }
@@ -901,10 +904,10 @@ int main(int, char**)
         delaunator::Delaunator& delaunator,
         std::function<void(edge_t, std::vector<double>)> callback) {
 
-        std::set<unsigned int> seen_points;
-        for (unsigned edge = 0; edge < delaunator.triangles.size(); edge++) {
+        std::set<edge_t> seen_points;
+        for (edge_t edge = 0; edge < delaunator.triangles.size(); edge++) {
             auto next_edge = nextHalfEdge(edge);
-            unsigned int triangle_id = delaunator.triangles[next_edge];
+            edge_t triangle_id = delaunator.triangles[next_edge];
 
             if (std::find(BEND(seen_points), triangle_id) == seen_points.end()) {
                 seen_points.insert(triangle_id);
@@ -946,7 +949,7 @@ int main(int, char**)
              return;
          }
 
-         for (unsigned int i = 0; i < size; i+=1) {
+         for (edge_t i = 0; i < size; i+=1) {
              if (i != size - 1){
                  drawer.pen_color(100, 0, 255);
                  draw_a_to_b(vertices[i], vertices[i + 1]);
@@ -958,8 +961,8 @@ int main(int, char**)
 
          if (cell_id == point_id ) //TODO replace 5 with whereever the mouse pos is
          {
-             for (unsigned int i = 0; i < size; i += 1) {
-                 for (unsigned int j = 0; j < size; j += 1) {
+             for (edge_t i = 0; i < size; i += 1) {
+                 for (edge_t j = 0; j < size; j += 1) {
                      //std::wstringstream ss;
                      //ss << i << " " << j;
                      //my_print(ss.str());
