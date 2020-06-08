@@ -21,6 +21,8 @@
 #include <random>
 #include <set>
 #include <thread>
+#include <unordered_map>
+
 
 
 #include "ui.h"
@@ -550,6 +552,42 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
     }
 
     return del;
+}
+
+namespace lloyd
+{
+    //X is all the points
+    //mu is a random subselection of X
+    std::unordered_map<size_t, v_double_t> cluster_points(v_double_pair_t X, v_double_pair_t mu)
+    {
+        //mu idx : norm
+        std::unordered_map<size_t, v_double_t> result;
+
+        for (const auto& pair : X) {
+            double px = pair.first;
+            double py = pair.second;
+
+            //find the lowest norm in mu from the pair
+            v_double_pair_t norms;
+            for (int i = 0; i < mu.size(); i++) {
+                double mx = mu[i].first;
+                double my = mu[i].second;
+
+                double_pair_t tmp = {px - mx, py - my};
+                double norm = std::sqrt(tmp.first * tmp.first + tmp.second * tmp.second); //pretty sure norm is just the magnitude/length of vector
+                norms.push_back({(double)i, norm});
+            }
+
+            auto smallest_norm = std::min_element(norms.begin(), norms.end(), [](double_pair_t& left, double_pair_t& right) {
+                return left.second < right.second;
+            });
+
+            result[smallest_norm->first].push_back(smallest_norm->second);
+
+        }
+
+        return result;
+    }
 }
 
 void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points)
