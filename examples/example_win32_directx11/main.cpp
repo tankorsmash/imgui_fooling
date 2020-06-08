@@ -648,6 +648,36 @@ namespace lloyd
         return mu_set == old_mu_set;
     }
 
+    //X are all points, K is the amount of centers i want to find
+    std::pair<v_double_pair_t, std::unordered_map<unsigned, v_double_pair_t>> find_centers(v_double_pair_t& X, unsigned K)
+    {
+        assert(K <= X.size());
+
+        //hack to randomly choose K-count points from X
+        v_double_pair_t old_mu{};
+        std::random_shuffle(X.begin(), X.end());
+        old_mu.insert(old_mu.begin(), X.begin(), X.begin() + K);
+
+        //hack to randomly choose K-count points from X
+        v_double_pair_t mu{};
+        std::random_shuffle(X.begin(), X.end());
+        mu.insert(mu.begin(), X.begin(), X.begin() + K);
+
+        std::unordered_map<size_t, v_double_pair_t> clusters;
+        while (!has_converged(mu, old_mu)) {
+            old_mu = mu;
+
+            //assign all points in X to clusters
+            clusters = cluster_points(X, mu);
+
+            //reeval centers
+            mu = reevaluate_centers(mu, clusters);
+        }
+
+        std::pair<v_double_pair_t, std::unordered_map<unsigned, v_double_pair_t>> result = std::make_pair(mu, clusters);
+        return result;
+    }
+
 }
 
 void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points)
