@@ -635,17 +635,7 @@ void draw_a_to_b(coord_t& a, coord_t& b) {
         return;
     }
 
-    //no need for offsets here either
-    unsigned x1 = a.first;
-    unsigned y1 = a.second;
-    unsigned x2 = b.first;
-    unsigned y2 = b.second;
-    drawer.line_segment(x1, y1, x2, y2);
-
-    //cant do this because the unsigned needs to convert into an int for
-    //line_segment, whereas my draw_a_to_b accepts doubles and breaks
-    //conversions up for reasons I dont understand
-    //draw_a_to_b(a.first, a.second, b.first, b.second);
+    draw_a_to_b(a.first, a.second, b.first, b.second);
 };
 
 bool point_in_poly(v_double_pair_t& verts, double point_x, double point_y)
