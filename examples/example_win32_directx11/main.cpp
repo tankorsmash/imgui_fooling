@@ -972,30 +972,25 @@ int main(int, char**)
 
      };
      auto draw_vertices_coord_with_id = [](edge_t cell_id, std::vector<coord_t>& vertices, double point_id) {
-         drawer.pen_color(cell_id * 10, 0, 0);
 
          auto size = vertices.size();
          if (size <= 1) {
              return;
          }
 
+         drawer.pen_color(255, 0, 0);
          for (edge_t i = 0; i < size; i+=1) {
              if (i != size - 1){
-                 drawer.pen_color(100, 0, 255);
                  draw_a_to_b(vertices[i], vertices[i + 1]);
              } else {
-                 drawer.pen_color(100, 0, 255);
                  draw_a_to_b(vertices[i], vertices[0]);
              }
          }
 
-         if (cell_id == point_id ) //TODO replace 5 with whereever the mouse pos is
+         if (cell_id == point_id )
          {
              for (edge_t i = 0; i < size; i += 1) {
                  for (edge_t j = 0; j < size; j += 1) {
-                     //std::wstringstream ss;
-                     //ss << i << " " << j;
-                     //my_print(ss.str());
                      drawer.pen_color(0, 0, 0);
                      draw_a_to_b(vertices[i], vertices[j]);
                  }
@@ -1011,16 +1006,11 @@ int main(int, char**)
              return;
          }
 
+         drawer.pen_color(cell_id * 5, 0, 255);
          for (unsigned int i = 0; i < size; i+=1) {
-             auto lerp = [](edge_t val) {
-                 return 0 + val*(width_height-0);
-             };
-
              if (i != size - 1){
-                 drawer.pen_color(100, 0, 255);
                  draw_a_to_b(vertices[i], vertices[i + 1]);
              } else {
-                 drawer.pen_color(100, 0, 255);
                  draw_a_to_b(vertices[i], vertices[0]);
              }
          }
