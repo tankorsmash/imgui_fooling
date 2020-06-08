@@ -1040,43 +1040,8 @@ int main(int, char**)
                  draw_a_to_b(vertices[i], vertices[0]);
              }
          }
-
-         if (cell_id == 2 ) //TODO replace 5 with whereever the mouse pos is
-         {
-             for (unsigned int i = 0; i < size; i += 1) {
-                 for (unsigned int j = 0; j < size; j += 1) {
-                     //std::wstringstream ss;
-                     //ss << i << " " << j;
-                     //my_print(ss.str());
-                     drawer.pen_color(0, 0, 0);
-                     draw_a_to_b(vertices[i], vertices[j]);
-                 }
-             }
-         }
      };
-     auto draw_vertices_doubles = [](edge_t cell_id, std::vector<double>& vertices) {
-         drawer.pen_color(cell_id * 10, 0, 0);
 
-         auto size = vertices.size();
-         if (size <= 1) {
-             my_print(L"skipping: num vertices: " + std::to_wstring(size));
-             return;
-         }
-
-         my_print(L"num vertices: "+std::to_wstring(size));
-         for (unsigned int i = 0; i < size-3; i+=2) {
-             if (i != size - 3){
-                 double x1 = vertices[i + 0];
-                 double y1 = vertices[i + 1];
-                 double x2 = vertices[i + 2];
-                 double y2 = vertices[i + 3];
-                 draw_a_to_b(x1, y1, x2, y2);
-             } else {
-                 draw_a_to_b(vertices[i], vertices[i+1], vertices[0], vertices[1]);
-             }
-
-         }
-     };
 
     //canvas.image().clear();
     //canvas.image().set_all_channels(240, 240, 240);
