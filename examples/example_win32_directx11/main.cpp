@@ -31,12 +31,14 @@
 #define BEND(what) what.begin(), what.end()
 
 using coord_t = std::pair<int, int>;
+using edge_t = size_t;
+using v_double_t = std::vector<double>;
+using double_pair_t = std::pair<double, double>;
+using v_double_pair_t = std::vector<double_pair_t>;
+
+static v_double_t ORIG_POINTS{};
 static int rng_seed = 12345;
-    using edge_t = size_t;
-    using v_double_t = std::vector<double>;
-    using double_pair_t = std::pair<double, double>;
-    using v_double_pair_t = std::vector<double_pair_t>;
-    static v_double_t ORIG_POINTS{};
+
 
 //josh
 struct ColorData
