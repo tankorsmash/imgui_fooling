@@ -513,7 +513,8 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
     delaunator::Delaunator* del = new delaunator::Delaunator(points);
     canvas->image().clear();
     canvas->image().set_all_channels(240, 240, 240);
-    for(std::size_t i = 0; i < del->triangles.size(); i+=3) {
+
+    for (std::size_t i = 0; i < del->triangles.size(); i += 3) {
         drawer->pen_color(255, 0, 0);
         double x1 = del->coords[2 * del->triangles[i + 0] + 0]; //tx0
         double y1 = del->coords[2 * del->triangles[i + 0] + 1]; //ty0
@@ -523,56 +524,22 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
         double y3 = del->coords[2 * del->triangles[i + 2] + 1]; //ty2
         drawer->triangle( x1, y1, x2, y2, x3, y3 );
 
-        //drawer->triangle(
-        //    del->coords[2 * del->triangles[i]],         //tx0
-        //    del->coords[2 * del->triangles[i] + 1],     //ty0
-        //    del->coords[2 * del->triangles[i + 1]],     //tx1
-        //    del->coords[2 * del->triangles[i + 1] + 1], //ty1
-        //    del->coords[2 * del->triangles[i + 2]],     //tx2
-        //    del->coords[2 * del->triangles[i + 2] + 1]  //ty2
-        //);
-
-
-
         drawer->pen_color(0, 0, 0);
         auto center = circumcenter(double_pair_t{x1, y1}, double_pair_t{x2, y2}, double_pair_t{x3, y3});
         //drawer->circle(center.first, center.second, 5);
 
         //draw the centers of each point bluish
         //drawer->pen_color(255, 0, 0);
-        //my_print(L"Circles:");
-        //std::wstringstream ss;
-        //ss << "X1: " << x1 << ", Y1: " << y1;
-        //my_print(ss.str());
-        //ss.str(L" ");
         //drawer->circle(x1, y1, 5);
+
         //drawer->pen_color(0, 255, 0);
-        //ss << "X2: " << x2 << ", Y2: " << y2;
-        //my_print(ss.str());
-        //ss.str(L" ");
         //drawer->circle(x2, y2, 5);
-        //ss << "X3: " << x3 << ", Y3: " << y2;
-        //my_print(ss.str());
-        //ss.str(L" ");
+
         //drawer->pen_color(0, 0, 255);
         //drawer->circle(x3, y3, 5);
 
     }
 
-    //for (int i = 0; i < ORIG_POINTS.size(); i+=2) {
-    //    drawer->pen_color(23, 255, 200);
-    //    auto x = ORIG_POINTS[i];
-    //    auto y = ORIG_POINTS[i+1];
-    //    drawer->circle(
-    //        x, y, 3
-    //    );
-    //    //drawer->rectangle(
-    //    //    del->coords[i],
-    //    //    del->coords[i+1],
-    //    //    del->coords[i+2],
-    //    //    del->coords[i+3]
-    //    //);
-    //}
     for (int i = 0; i < del->coords.size(); i+=2) {
         drawer->pen_color(23, 255, 200);
         auto x = del->coords[i];
@@ -580,14 +547,7 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
         drawer->circle(
             x, y, 3
         );
-        //drawer->rectangle(
-        //    del->coords[i],
-        //    del->coords[i+1],
-        //    del->coords[i+2],
-        //    del->coords[i+3]
-        //);
     }
-    //canvas->image().save_image("delaunator_output.bmp");
 
     return del;
 }
@@ -597,7 +557,6 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rng_seed); //Standard mersenne_twister_engine seeded with rd()
     std::uniform_int_distribution<> distrib(0, color_data.width);
-    //std::uniform_int_distribution<> y_distrib(0, color_data.height);
     points.clear();
     ORIG_POINTS.clear();
 
@@ -608,13 +567,7 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
          points.push_back((double)y);
          ORIG_POINTS.push_back((double)x);
          ORIG_POINTS.push_back((double)y);
-         //std::wstringstream ss;
-         //ss << "X: " << x << ", Y: " << y;
-         //my_print(ss.str());
-         //edge_points.push_back(std::make_pair((double)x, (double)y));
      }
-
-
 }
 
 
@@ -660,18 +613,8 @@ static cartesian_canvas canvas(width_height, width_height);
 static image_drawer drawer(canvas.image());
 static delaunator::Delaunator* del;
 std::vector<double_pair_t> hull_verts;
-void draw_a_to_b(double_pair_t& a, double_pair_t& b) {
-    //std::wstringstream ss;
-    //ss << "Drawing Edge: ";
-    //ss << "(" << a.first << ", " << a.second << ") ";
-    //ss << "(" << b.first << ", " << b.second << ") ";
-    //my_print(ss.str());
-    int mul = 4;
-    int x_offset = -(width_height / 2);
-    int y_offset = (width_height / 2);
-    int offset = 0;
-    //canvas.line_segment(a.first + x_offset, + y_offset - a.second , b.first + x_offset,  y_offset - b.second);
 
+void draw_a_to_b(double_pair_t& a, double_pair_t& b) {
     if (a.first > 10000 || a.second > 10000 || b.first > 10000 || b.second > 100000) {
         __debugbreak();
         return;
