@@ -18,6 +18,7 @@
 #include <sstream>
 #include <array>
 #include <chrono>
+#include <numeric>
 #include <random>
 #include <set>
 #include <thread>
@@ -558,10 +559,10 @@ namespace lloyd
 {
     //X is all the points
     //mu is a random subselection of X
-    std::unordered_map<size_t, v_double_t> cluster_points(v_double_pair_t X, v_double_pair_t mu)
+    std::unordered_map<size_t, v_double_pair_t> cluster_points(v_double_pair_t X, v_double_pair_t mu)
     {
         //mu idx : norm
-        std::unordered_map<size_t, v_double_t> result;
+        std::unordered_map<size_t, v_double_pair_t> result;
 
         for (const auto& pair : X) {
             double px = pair.first;
@@ -582,11 +583,42 @@ namespace lloyd
                 return left.second < right.second;
             });
 
-            result[smallest_norm->first].push_back(smallest_norm->second);
+            result[smallest_norm->first].push_back(pair);
 
         }
 
         return result;
+    }
+
+    //`mu` is the subsection of total points im testing
+    //`clusters` is how far apart they are from each point in the total set of points
+    v_double_pair_t reevaluate_centers(v_double_pair_t& mu, std::unordered_map<unsigned, v_double_pair_t>& clusters)
+    {
+        v_double_pair_t new_mu{};
+
+        std::vector<unsigned> keys;
+        for (auto& cluster: clusters) {
+            keys.push_back(cluster.first);
+        }
+        std::sort(keys.begin(), keys.end());
+
+        //std::sort(clusters.begin(), clusters.end(), [](const std::pair<unsigned, v_double_t> cluster) {
+        //    return cluster.first;
+        //});
+
+        //calc average of the points in cluster
+        for (auto& k: keys) {
+            auto cluster = clusters[k];
+            double x_mean = std::accumulate(cluster.begin(), cluster.end(), 0.0, [](double total, const double_pair_t& coord) {
+                return coord.first + total;
+            })/cluster.size();
+            double y_mean = std::accumulate(cluster.begin(), cluster.end(), 0.0, [](double total, const double_pair_t& coord) {
+                return coord.second + total;
+            })/cluster.size();
+            new_mu.push_back({x_mean, y_mean});
+        }
+
+        return new_mu;
     }
 }
 
