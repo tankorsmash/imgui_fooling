@@ -506,6 +506,7 @@ ColorData create_voronoi_color_data(int width_height, int /*rng_seed*/)
     return color_data;
 }
 
+//draws points to canvas, but also creates the Delaunator instance
 delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& points, cartesian_canvas* canvas, image_drawer* drawer)
 {
     //v_double_t points2 = points;
@@ -786,6 +787,21 @@ void forEachVoronoiCell(delaunator::Delaunator& delaunator,
         
 };
 
+void regenerate_canvas()
+{
+    std::vector<double>  points{};
+    ColorData color_data;
+    color_data.width = width_height;
+    color_data.height = width_height;
+    color_data.red = new unsigned char[color_data.height*color_data.width];
+    color_data.green = new unsigned char[color_data.height*color_data.width];
+    color_data.blue = new unsigned char[color_data.height*color_data.width];
+
+    int num_points = 50;
+    generate_points_for_del(width_height, color_data, num_points, points);
+    del = draw_del_points_to_canvas(points, &canvas, &drawer);
+};
+
 int main(int, char**)
 {
     // Create application window
@@ -824,20 +840,7 @@ int main(int, char**)
     //bool ret = LoadTextureFromFile("../../MyImage01.jpg", &my_texture, &my_image_width, &my_image_height);
     //bool ret = LoadTextureFromFile("panel.png", &my_texture, &my_image_width, &my_image_height);
 
-    int num_points = 50;
 
-    auto regenerate_canvas = [&]() {
-        std::vector<double>  points{};
-        ColorData color_data;
-        color_data.width = width_height;
-        color_data.height = width_height;
-        color_data.red   = new unsigned char [color_data.height*color_data.width];
-        color_data.green = new unsigned char [color_data.height*color_data.width];
-        color_data.blue  = new unsigned char [color_data.height*color_data.width];
-
-        generate_points_for_del(width_height, color_data, num_points, points);
-        del = draw_del_points_to_canvas(points, &canvas, &drawer);
-    };
     regenerate_canvas();
 
      auto draw_vertices_coord_with_id = [](edge_t cell_id, std::vector<coord_t>& vertices, double point_id) {
