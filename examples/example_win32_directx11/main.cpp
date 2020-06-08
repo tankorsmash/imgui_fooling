@@ -993,25 +993,8 @@ int main(int, char**)
              } else {
                  b = vertices[0];
              }
-             auto bx = b.first;
-             auto by = b.second;
 
-             double bdx = bx;
-             double bdy = by;
-             //draw_a_to_b(a, b);
-             //draw_a_to_b(adx, ady, bdx, bdy);
-             //drawer.line_segment(a.first, a.second, b.first, b.second);
-             std::wstringstream ss;
-
-             ss << "ax: " << ax << ", ay: " << ay;
-             ss << "adx: " << adx << ", ady: " << ady;
-             ss << " bx: " << bx << ", by: " << by;
-             ss << " bdx: " << bdx << ", bdy: " << bdy;
-             //if (ax > 10000 || bx > 10000) {
-                 my_print(ss.str());
-             //}
-             //drawer.line_segment(ax, ay, bx, by);
-             drawer.line_segment(adx, ady, bdx, bdy);
+             draw_a_to_b(a, b);
          }
 
          if (cell_id == point_id )
