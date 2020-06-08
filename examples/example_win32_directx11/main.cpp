@@ -23,6 +23,7 @@
 #include <set>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
 
 
 
@@ -555,6 +556,17 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
     return del;
 }
 
+// A hash function used to hash a pair of any kind 
+struct hash_pair { 
+    template <class T1, class T2> 
+    size_t operator()(const std::pair<T1, T2>& p) const
+    { 
+        auto hash1 = std::hash<T1>{}(p.first); 
+        auto hash2 = std::hash<T2>{}(p.second); 
+        return hash1 ^ hash2; 
+    } 
+}; 
+
 namespace lloyd
 {
     //X is all the points
@@ -620,6 +632,22 @@ namespace lloyd
 
         return new_mu;
     }
+
+    bool has_converged(v_double_pair_t& mu, v_double_pair_t& old_mu)
+    {
+        std::unordered_set<double_pair_t, hash_pair> mu_set{};
+        for (auto& mval: mu) {
+            mu_set.insert(mval);
+        }
+
+        std::unordered_set<double_pair_t, hash_pair> old_mu_set{};
+        for (auto& old_mval: old_mu) {
+            old_mu_set.insert(old_mval);
+        }
+
+        return mu_set == old_mu_set;
+    }
+
 }
 
 void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points)
