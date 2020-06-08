@@ -655,6 +655,7 @@ static int width_height = 512 * 1;
 static cartesian_canvas canvas(width_height, width_height);
 static image_drawer drawer(canvas.image());
 static delaunator::Delaunator* del;
+std::vector<double_pair_t> hull_verts;
 void draw_a_to_b(double_pair_t& a, double_pair_t& b) {
     //std::wstringstream ss;
     //ss << "Drawing Edge: ";
@@ -700,6 +701,33 @@ void draw_a_to_b(coord_t& a, coord_t& b) {
     //draw_a_to_b(a.first, a.second, b.first, b.second);
 };
 
+bool point_in_poly(v_double_pair_t& verts, double point_x, double point_y)
+{
+    bool in_poly = false;
+    auto num_verts = verts.size();
+    for (int i = 0, j = num_verts - 1; i < num_verts; j = i++) {
+        double x1 = verts[i].first;
+        double y1 = verts[i].second;
+        double x2 = verts[j].first;
+        double y2 = verts[j].second;
+
+        if (((y1 > point_y) != (y2 > point_y)) &&
+            (point_x < (x2 - x1) * (point_y - y1) / (y2 - y1) + x1))
+            in_poly = !in_poly;
+    }
+    return in_poly;
+}
+
+int pnpoly(int num_verts, double *vert_xs, double *vert_ys, double point_x, double point_y)
+{
+    int c = 0;
+    for (int i = 0, j = num_verts - 1; i < num_verts; j = i++) {
+        if (((vert_ys[i] > point_y) != (vert_ys[j] > point_y)) &&
+            (point_x < (vert_xs[j] - vert_xs[i]) * (point_y - vert_ys[i]) / (vert_ys[j] - vert_ys[i]) + vert_xs[i]))
+            c = !c;
+    }
+    return c;
+}
 
 int main(int, char**)
 {
@@ -886,7 +914,6 @@ int main(int, char**)
         drawer.pen_color(0, 255, 0);
 
 
-        std::vector<double> hull_area;
         size_t e = del->hull_start;
         do {
             double x1 = del->coords[2 * e];
@@ -894,6 +921,8 @@ int main(int, char**)
             double x2 = del->coords[2 * del->hull_prev[e]];
             double y2 = del->coords[2 * del->hull_prev[e] + 1];
             draw_a_to_b(double_pair_t{x1, y1}, double_pair_t{x2, y2});
+            hull_verts.push_back(double_pair_t{x1, y1});
+            hull_verts.push_back(double_pair_t{x2, y2});
             e = del->hull_next[e];
         } while (e != del->hull_start);
 
@@ -1188,6 +1217,8 @@ int main(int, char**)
                 }
 
                 ImGui::LabelText("Distance, Id", "%f, %f", distance, cell_id);
+                ImGui::LabelText("Mouse in poly SO", "%i", 0);
+                ImGui::LabelText("Mouse in poly mine", "%i", point_in_poly(hull_verts, mouse_pos.x, mouse_pos.y));
             }
             ImGui::End();
         }
