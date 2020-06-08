@@ -981,13 +981,36 @@ int main(int, char**)
          drawer.pen_color(255, 0, 0);
          for (edge_t i = 0; i < size; i += 1) {
              coord_t a = vertices[i];
+             unsigned ax = a.first;
+             unsigned ay = a.second;
+
+             double adx = ax;
+             double ady = ay;
              coord_t b = {0, 0};
              if (i != size - 1) {
                  b = vertices[i + 1];
              } else {
                  b = vertices[0];
              }
-             draw_a_to_b(a, b);
+             unsigned bx = b.first;
+             unsigned by = b.second;
+
+             double bdx = bx;
+             double bdy = by;
+             //draw_a_to_b(a, b);
+             //draw_a_to_b(adx, ady, bdx, bdy);
+             //drawer.line_segment(a.first, a.second, b.first, b.second);
+             std::wstringstream ss;
+
+             ss << "ax: " << ax << ", ay: " << ay;
+             ss << "adx: " << adx << ", ady: " << ady;
+             ss << " bx: " << bx << ", by: " << by;
+             ss << " bdx: " << bdx << ", bdy: " << bdy;
+             if (ax > 10000 || bx > 10000) {
+                 my_print(ss.str());
+             }
+             drawer.line_segment(ax, ay, bx, by);
+             //drawer.line_segment(adx, ady, bdx, bdy);
          }
 
          if (cell_id == point_id )
