@@ -30,7 +30,7 @@
 
 #define BEND(what) what.begin(), what.end()
 
-using coord_t = std::pair<unsigned int, unsigned int>;
+using coord_t = std::pair<int, int>;
 static int rng_seed = 12345;
     using edge_t = size_t;
     using v_double_t = std::vector<double>;
@@ -981,19 +981,20 @@ int main(int, char**)
          drawer.pen_color(255, 0, 0);
          for (edge_t i = 0; i < size; i += 1) {
              coord_t a = vertices[i];
-             unsigned ax = a.first;
-             unsigned ay = a.second;
+             auto ax = a.first;
+             auto ay = a.second;
 
              double adx = ax;
              double ady = ay;
+
              coord_t b = {0, 0};
              if (i != size - 1) {
                  b = vertices[i + 1];
              } else {
                  b = vertices[0];
              }
-             unsigned bx = b.first;
-             unsigned by = b.second;
+             auto bx = b.first;
+             auto by = b.second;
 
              double bdx = bx;
              double bdy = by;
@@ -1006,11 +1007,11 @@ int main(int, char**)
              ss << "adx: " << adx << ", ady: " << ady;
              ss << " bx: " << bx << ", by: " << by;
              ss << " bdx: " << bdx << ", bdy: " << bdy;
-             if (ax > 10000 || bx > 10000) {
+             //if (ax > 10000 || bx > 10000) {
                  my_print(ss.str());
-             }
-             drawer.line_segment(ax, ay, bx, by);
-             //drawer.line_segment(adx, ady, bdx, bdy);
+             //}
+             //drawer.line_segment(ax, ay, bx, by);
+             drawer.line_segment(adx, ady, bdx, bdy);
          }
 
          if (cell_id == point_id )
