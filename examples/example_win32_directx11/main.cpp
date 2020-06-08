@@ -733,6 +733,59 @@ int pnpoly(int num_verts, double *vert_xs, double *vert_ys, double point_x, doub
     return c;
 }
 
+void forEachVoronoiCell(delaunator::Delaunator& delaunator,
+    std::function<void(edge_t, std::vector<coord_t>&)> callback)
+{
+
+    std::set<edge_t> seen_points;
+    //for (const int& edge : delaunator.triangles) {
+    for (edge_t edge = 0; edge < delaunator.triangles.size(); edge++) {
+        auto next_edge = nextHalfEdge(edge);
+        edge_t triangle_id = delaunator.triangles[next_edge];
+
+        if (std::find(BEND(seen_points), triangle_id) == seen_points.end()) {
+            seen_points.insert(triangle_id);
+            std::vector<edge_t> edges = edgesAroundPoint(delaunator, edge);
+
+
+            //get the triangle_id for each edge
+            std::vector<edge_t> triangles{};
+            std::transform(BEND(edges), std::back_inserter(triangles), triangleOfEdge);
+
+            //for each triangle found, calculate the circumcenter
+            std::vector<coord_t> vertices{};
+            std::transform(
+                BEND(triangles), std::back_inserter(vertices),
+                [&delaunator](edge_t tri_id) {
+                    auto result = triangleCenter(delaunator, tri_id);
+                    return result;
+                }
+            );
+
+            //draw the triangle
+            callback(triangle_id, vertices);
+        }
+    }
+
+
+    drawer.pen_color(0, 255, 0);
+
+
+    hull_verts.clear();
+    size_t e = del->hull_start;
+    do {
+        double x1 = del->coords[2 * e];
+        double y1 = del->coords[2 * e + 1];
+        double x2 = del->coords[2 * del->hull_prev[e]];
+        double y2 = del->coords[2 * del->hull_prev[e] + 1];
+        draw_a_to_b(double_pair_t{x1, y1}, double_pair_t{x2, y2});
+        //hull_verts.push_back(double_pair_t{x1, y1});
+        hull_verts.push_back(double_pair_t{x2, y2});
+        e = del->hull_next[e];
+    } while (e != del->hull_start);
+
+        
+};
 
 int main(int, char**)
 {
@@ -787,141 +840,9 @@ int main(int, char**)
     auto regenerate_canvas = [&]() {
         generate_points_for_del(width_height, color_data, num_points, points, point_pairs);
         del = draw_del_points_to_canvas(points, &canvas, &drawer);
-
-        //for (auto& coords: edge_points) {
-        //    std::wstringstream ss;
-        //    ss << "(" << coords.first << ", " << coords.second << ")";
-        //    my_print(ss.str());
-        //}
     };
     regenerate_canvas();
 
-
-
-    auto forEachVoronoiEdge = [&](delaunator::Delaunator& delaunator, std::function<void(edge_t, double_pair_t, double_pair_t)> callback) {
-        //forEachTriangleEdge
-        //for (unsigned e = 0;  e < delaunator.triangles.size(); e++) {
-        //    auto halfedge = delaunator.halfedges[e];
-        //    if (e < halfedge && halfedge != delaunator::INVALID_INDEX) {
-        //        try{
-        //            auto p = double_pair_t{delaunator.coords.at(delaunator.triangles[e] * 2), delaunator.coords.at(delaunator.triangles[e] * 2 + 1)};
-        //            auto q = double_pair_t{delaunator.coords.at(delaunator.triangles[nextHalfEdge(e)] * 2), delaunator.coords.at(delaunator.triangles[nextHalfEdge(e)] * 2 + 1)};
-        //            callback(e, p, q);
-        //        }
-        //        catch (std::out_of_range& ex) { my_print(L"invalid"); }
-        //    }
-        //}
-
-        ////forEachVoronoiEdge
-        for (unsigned e = 0;  e < delaunator.triangles.size(); e++) {
-            auto halfedge = delaunator.halfedges[e];
-            if (e > halfedge && halfedge != delaunator::INVALID_INDEX) {
-                edge_t pt = triangleOfEdge(e);
-                double_pair_t p = triangleCenter(delaunator, pt);
-
-                edge_t qt = triangleOfEdge(delaunator.halfedges[e]);
-                double_pair_t q = triangleCenter(delaunator, qt);
-
-                callback(e, p, q);
-            }
-        }
-    };
-
-    auto forEachVoronoiCell = [](
-        delaunator::Delaunator& delaunator,
-        std::function<void(edge_t, std::vector<coord_t>&)> callback) {
-
-        std::set<edge_t> seen_points;
-        //for (const int& edge : delaunator.triangles) {
-        for (edge_t edge = 0; edge < delaunator.triangles.size(); edge++) {
-            auto next_edge = nextHalfEdge(edge);
-            edge_t triangle_id = delaunator.triangles[next_edge];
-
-            if (std::find(BEND(seen_points), triangle_id) == seen_points.end()) {
-                seen_points.insert(triangle_id);
-                std::vector<edge_t> edges = edgesAroundPoint(delaunator, edge);
-
-
-                //get the triangle_id for each edge
-                std::vector<edge_t> triangles{};
-                std::transform(BEND(edges), std::back_inserter(triangles), triangleOfEdge);
-
-                //for each triangle found, calculate the circumcenter
-                std::vector<coord_t> vertices{};
-                std::transform(
-                    BEND(triangles), std::back_inserter(vertices),
-                    [&delaunator](edge_t tri_id) {
-                        auto result = triangleCenter(delaunator, tri_id);
-                        return result;
-                    }
-                );
-
-                //draw the triangle
-                callback(triangle_id, vertices);
-            }
-        }
-
-
-        drawer.pen_color(0, 255, 0);
-
-
-        hull_verts.clear();
-        size_t e = del->hull_start;
-        do {
-            double x1 = del->coords[2 * e];
-            double y1 = del->coords[2 * e + 1];
-            double x2 = del->coords[2 * del->hull_prev[e]];
-            double y2 = del->coords[2 * del->hull_prev[e] + 1];
-            draw_a_to_b(double_pair_t{x1, y1}, double_pair_t{x2, y2});
-            //hull_verts.push_back(double_pair_t{x1, y1});
-            hull_verts.push_back(double_pair_t{x2, y2});
-            e = del->hull_next[e];
-        } while (e != del->hull_start);
-
-            
-    };
-
-    auto forEachVoronoiTriangle = [](
-        delaunator::Delaunator& delaunator,
-        std::function<void(edge_t, std::vector<double>)> callback) {
-
-        std::set<edge_t> seen_points;
-        for (edge_t edge = 0; edge < delaunator.triangles.size(); edge++) {
-            auto next_edge = nextHalfEdge(edge);
-            edge_t triangle_id = delaunator.triangles[next_edge];
-
-            if (std::find(BEND(seen_points), triangle_id) == seen_points.end()) {
-                seen_points.insert(triangle_id);
-                std::vector<edge_t> edges = edgesAroundPoint(delaunator, edge);
-
-
-                std::vector<edge_t> triangles{};
-                std::transform(BEND(edges), std::back_inserter(triangles), triangleOfEdge);
-
-                std::vector<coord_t> vertices{};
-                for (edge_t& triangle_id: triangles) {
-                    auto triangle_edges = pointsOfTriangle(*del, triangle_id);
-                    v_double_t tri_verts;
-                    for (auto& el: triangle_edges) {
-                        auto x = del->coords[el*2];
-                        auto y = del->coords[el*2+1];
-                        tri_verts.push_back(x);
-                        tri_verts.push_back(y);
-                    }
-                    callback(triangle_id, tri_verts);
-                }
-
-            }
-        }
-    };
-
-    //image_drawer drawer(canvas.image());
-     auto draw_edges = [](edge_t cell_id, double_pair_t e1, double_pair_t e2) {
-         drawer.pen_color(0, 0, 0);
-
-         draw_a_to_b(e1, e2);
-
-     };
      auto draw_vertices_coord_with_id = [](edge_t cell_id, std::vector<coord_t>& vertices, double point_id) {
 
          auto size = vertices.size();
@@ -990,13 +911,8 @@ int main(int, char**)
      };
 
 
-    //canvas.image().clear();
-    //canvas.image().set_all_channels(240, 240, 240);
-    //forEachVoronoiEdge(*del, draw_edges);
     forEachVoronoiCell(*del, draw_vertices_coord);
-    //forEachVoronoiTriangle(*del, draw_vertices);
 
-    //canvas.image().save_image("delaunator_output_vornoi.bmp");
 
     static TextureData* TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
 
