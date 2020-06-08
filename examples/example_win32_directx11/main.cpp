@@ -914,6 +914,7 @@ int main(int, char**)
         drawer.pen_color(0, 255, 0);
 
 
+        hull_verts.clear();
         size_t e = del->hull_start;
         do {
             double x1 = del->coords[2 * e];
@@ -921,7 +922,7 @@ int main(int, char**)
             double x2 = del->coords[2 * del->hull_prev[e]];
             double y2 = del->coords[2 * del->hull_prev[e] + 1];
             draw_a_to_b(double_pair_t{x1, y1}, double_pair_t{x2, y2});
-            hull_verts.push_back(double_pair_t{x1, y1});
+            //hull_verts.push_back(double_pair_t{x1, y1});
             hull_verts.push_back(double_pair_t{x2, y2});
             e = del->hull_next[e];
         } while (e != del->hull_start);
@@ -1217,7 +1218,17 @@ int main(int, char**)
                 }
 
                 ImGui::LabelText("Distance, Id", "%f, %f", distance, cell_id);
-                ImGui::LabelText("Mouse in poly SO", "%i", 0);
+
+                int num_verts = hull_verts.size();
+                double* vert_xs = new double[num_verts];
+                double* vert_ys = new double[num_verts];
+                for (int i = 0; i < num_verts; i++) {
+                    vert_xs[i] = hull_verts[i].first;
+                    vert_ys[i] = hull_verts[i].second;
+                }
+                int pnp = pnpoly(num_verts, vert_xs, vert_ys, mouse_pos.x, mouse_pos.y);
+
+                ImGui::LabelText("Mouse in poly SO", "%i", pnp);
                 ImGui::LabelText("Mouse in poly mine", "%i", point_in_poly(hull_verts, mouse_pos.x, mouse_pos.y));
             }
             ImGui::End();
