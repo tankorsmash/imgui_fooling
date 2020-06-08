@@ -189,6 +189,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="polygon_triangulate.cpp" />
     <ClCompile Include="ui.cpp" />
+    <ClCompile Include="voronoi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\misc\natvis\imgui.natvis" />

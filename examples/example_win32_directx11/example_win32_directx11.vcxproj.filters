@@ -83,6 +83,9 @@
     <ClCompile Include="polygon_triangulate.cpp">
       <Filter>sources</Filter>
     </ClCompile>
+    <ClCompile Include="voronoi.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.txt" />

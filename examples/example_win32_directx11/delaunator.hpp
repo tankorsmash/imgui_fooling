@@ -148,8 +148,8 @@ inline bool in_circle(
             ap * (ex * fy - ey * fx)) < 0.0;
 }
 
-double EPSILON = std::numeric_limits<double>::epsilon();
-std::size_t INVALID_INDEX = std::numeric_limits<std::size_t>::max();
+static const double EPSILON = std::numeric_limits<double>::epsilon();
+static const std::size_t INVALID_INDEX = std::numeric_limits<std::size_t>::max();
 
 inline bool check_pts_equal(double x1, double y1, double x2, double y2) {
     return std::fabs(x1 - x2) <= EPSILON &&
@@ -206,7 +206,7 @@ private:
     void link(std::size_t a, std::size_t b);
 };
 
-Delaunator::Delaunator(std::vector<double> const& in_coords)
+inline Delaunator::Delaunator(std::vector<double> const& in_coords)
     : coords(in_coords),
       triangles(),
       halfedges(),
@@ -429,7 +429,7 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
     }
 }
 
-double Delaunator::get_hull_area() {
+inline double Delaunator::get_hull_area() {
     std::vector<double> hull_area;
     size_t e = hull_start;
     do {
@@ -442,7 +442,7 @@ double Delaunator::get_hull_area() {
     return sum(hull_area);
 }
 
-std::size_t Delaunator::legalize(std::size_t a) {
+inline std::size_t Delaunator::legalize(std::size_t a) {
     std::size_t i = 0;
     std::size_t ar = 0;
     m_edge_stack.clear();
@@ -549,7 +549,7 @@ inline std::size_t Delaunator::hash_key(const double x, const double y) const {
         m_hash_size);
 }
 
-std::size_t Delaunator::add_triangle(
+inline std::size_t Delaunator::add_triangle(
     std::size_t i0,
     std::size_t i1,
     std::size_t i2,
@@ -566,7 +566,7 @@ std::size_t Delaunator::add_triangle(
     return t;
 }
 
-void Delaunator::link(const std::size_t a, const std::size_t b) {
+inline void Delaunator::link(const std::size_t a, const std::size_t b) {
     std::size_t s = halfedges.size();
     if (a == s) {
         halfedges.push_back(b);
