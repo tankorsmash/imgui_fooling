@@ -979,12 +979,15 @@ int main(int, char**)
          }
 
          drawer.pen_color(255, 0, 0);
-         for (edge_t i = 0; i < size; i+=1) {
-             if (i != size - 1){
-                 draw_a_to_b(vertices[i], vertices[i + 1]);
+         for (edge_t i = 0; i < size; i += 1) {
+             coord_t a = vertices[i];
+             coord_t b = {0, 0};
+             if (i != size - 1) {
+                 b = vertices[i + 1];
              } else {
-                 draw_a_to_b(vertices[i], vertices[0]);
+                 b = vertices[0];
              }
+             draw_a_to_b(a, b);
          }
 
          if (cell_id == point_id )
