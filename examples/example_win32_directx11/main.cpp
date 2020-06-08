@@ -974,7 +974,7 @@ int main(int, char**)
      auto draw_vertices_coord_with_id = [](edge_t cell_id, std::vector<coord_t>& vertices, double point_id) {
 
          auto size = vertices.size();
-         if (size <= 1) {
+         if (size <= 2) {
              return;
          }
 
