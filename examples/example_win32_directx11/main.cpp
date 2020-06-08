@@ -587,7 +587,7 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
         //    del->coords[i+3]
         //);
     }
-    canvas->image().save_image("delaunator_output.bmp");
+    //canvas->image().save_image("delaunator_output.bmp");
 
     return del;
 }
