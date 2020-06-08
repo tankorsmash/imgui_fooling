@@ -591,14 +591,13 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
     return del;
 }
 
-void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points, v_double_pair_t& point_pairs)
+void generate_points_for_del(int width_height, const ColorData& color_data, int num_points, std::vector<double>& points)
 {
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rng_seed); //Standard mersenne_twister_engine seeded with rd()
     std::uniform_int_distribution<> distrib(0, color_data.width);
     //std::uniform_int_distribution<> y_distrib(0, color_data.height);
     points.clear();
-    point_pairs.clear();
     ORIG_POINTS.clear();
 
      for (int i = 0; i < num_points; i++) {
@@ -825,20 +824,18 @@ int main(int, char**)
     //bool ret = LoadTextureFromFile("../../MyImage01.jpg", &my_texture, &my_image_width, &my_image_height);
     //bool ret = LoadTextureFromFile("panel.png", &my_texture, &my_image_width, &my_image_height);
 
-    ColorData color_data;
-    color_data.width = width_height;
-    color_data.height = width_height;
-    color_data.red   = new unsigned char [color_data.height*color_data.width];
-    color_data.green = new unsigned char [color_data.height*color_data.width];
-    color_data.blue  = new unsigned char [color_data.height*color_data.width];
-
-
     int num_points = 50;
-    std::vector<double>  points{};
-    v_double_pair_t point_pairs;
 
     auto regenerate_canvas = [&]() {
-        generate_points_for_del(width_height, color_data, num_points, points, point_pairs);
+        std::vector<double>  points{};
+        ColorData color_data;
+        color_data.width = width_height;
+        color_data.height = width_height;
+        color_data.red   = new unsigned char [color_data.height*color_data.width];
+        color_data.green = new unsigned char [color_data.height*color_data.width];
+        color_data.blue  = new unsigned char [color_data.height*color_data.width];
+
+        generate_points_for_del(width_height, color_data, num_points, points);
         del = draw_del_points_to_canvas(points, &canvas, &drawer);
     };
     regenerate_canvas();
