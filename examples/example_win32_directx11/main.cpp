@@ -533,14 +533,14 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
         //drawer->circle(center.first, center.second, 5);
 
         //draw the centers of each point bluish
-        //drawer->pen_color(255, 0, 0);
-        //drawer->circle(x1, y1, 5);
+        drawer->pen_color(255, 0, 0);
+        drawer->circle(x1, y1, 5);
 
-        //drawer->pen_color(0, 255, 0);
-        //drawer->circle(x2, y2, 5);
+        drawer->pen_color(0, 255, 0);
+        drawer->circle(x2, y2, 5);
 
-        //drawer->pen_color(0, 0, 255);
-        //drawer->circle(x3, y3, 5);
+        drawer->pen_color(0, 0, 255);
+        drawer->circle(x3, y3, 5);
 
     }
 
@@ -688,6 +688,9 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
     points.clear();
     ORIG_POINTS.clear();
 
+
+    v_double_pair_t point_pairs{};
+
      for (int i = 0; i < num_points; i++) {
          int x = distrib(gen);
          int y = distrib(gen);
@@ -695,7 +698,23 @@ void generate_points_for_del(int width_height, const ColorData& color_data, int 
          points.push_back((double)y);
          ORIG_POINTS.push_back((double)x);
          ORIG_POINTS.push_back((double)y);
+
+         point_pairs.push_back({x, y});
      }
+
+     //double num_clusters = 250;
+     //point_pairs = lloyd::find_centers(point_pairs, num_clusters).first;
+     //point_pairs = lloyd::find_centers(point_pairs, num_clusters).first;
+     //point_pairs = lloyd::find_centers(point_pairs, num_clusters).first;
+     //point_pairs = lloyd::find_centers(point_pairs, num_clusters).first;
+
+    //now point_pairs has a limited set of points clustered together, I think
+
+     //points.clear();
+     //for (auto& point: point_pairs) {
+     //    points.push_back(point.first);
+     //    points.push_back(point.second);
+     //}
 }
 
 
@@ -743,10 +762,10 @@ static delaunator::Delaunator* del;
 std::vector<double_pair_t> hull_verts;
 
 void draw_a_to_b(double_pair_t& a, double_pair_t& b) {
-    if (a.first > 10000 || a.second > 10000 || b.first > 10000 || b.second > 100000) {
-        __debugbreak();
-        return;
-    }
+    //if (a.first > 10000 || a.second > 10000 || b.first > 10000 || b.second > 100000) {
+    //    __debugbreak();
+    //    return;
+    //}
     drawer.line_segment(a.first, a.second, b.first, b.second);
 };
 
@@ -858,7 +877,7 @@ void regenerate_canvas()
     color_data.green = new unsigned char[color_data.height*color_data.width];
     color_data.blue = new unsigned char[color_data.height*color_data.width];
 
-    int num_points = 50;
+    int num_points = 250;
     generate_points_for_del(width_height, color_data, num_points, points);
     del = draw_del_points_to_canvas(points, &canvas, &drawer);
 };
