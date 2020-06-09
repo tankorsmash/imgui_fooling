@@ -978,7 +978,6 @@ int main(int, char**)
              return;
          }
 
-         drawer.pen_color(255, 0, 0);
          bool is_valid = true;
          for (edge_t i = 0; i < size; i += 1) {
              coord_t a = vertices[i];
@@ -1004,6 +1003,7 @@ int main(int, char**)
                      b = vertices[0];
                  }
 
+                 set_pen_color(ColorType::CellEdge);
                  draw_a_to_b(a, b);
              }
 
@@ -1122,6 +1122,7 @@ int main(int, char**)
                 {ColorType::TriangleCenter, std::string("Triangle Center")},
                 {ColorType::CellEdge, std::string("Cell Edge")},
                 {ColorType::CellHighlight, std::string("Cell Highlight")},
+                {ColorType::CellCorner, std::string("Cell Corner")},
                 {ColorType::Coord, std::string("Coord")},
                 {ColorType::TriangleCorner, std::string("Triangle Corner")},
                 {ColorType::HullColor, std::string("Hull Color")}
@@ -1235,17 +1236,6 @@ int main(int, char**)
                 }
 
                 ImGui::LabelText("Distance, Id", "%f, %f", distance, cell_id);
-
-                int num_verts = hull_verts.size();
-                double* vert_xs = new double[num_verts];
-                double* vert_ys = new double[num_verts];
-                for (int i = 0; i < num_verts; i++) {
-                    vert_xs[i] = hull_verts[i].first;
-                    vert_ys[i] = hull_verts[i].second;
-                }
-                int pnp = pnpoly(num_verts, vert_xs, vert_ys, mouse_pos.x, mouse_pos.y);
-
-                ImGui::LabelText("Mouse in poly SO", "%i", pnp);
                 ImGui::LabelText("Mouse in poly mine", "%i", point_in_poly(hull_verts, mouse_pos.x, mouse_pos.y));
             }
             ImGui::End();
