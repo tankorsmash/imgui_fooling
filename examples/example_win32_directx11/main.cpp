@@ -60,9 +60,17 @@ struct ColorData
     bool has_26 = false;
 };
 
-struct RGB
+struct MyRGB
 {
     unsigned char r, g, b;
+    float rf, gf, bf;
+
+    MyRGB(): r(0), g(0), b(0), rf(0), gf(0), bf(0 ) { } ;
+
+    MyRGB(unsigned char r, unsigned char g, unsigned char b) :
+        r(r), rf(r / 255.0), g(g), gf(g / 255.0), b(b), bf(b/255.0)
+    {
+    }
 };
 enum class ColorType
 {
@@ -778,7 +786,7 @@ static image_drawer drawer(canvas.image());
 static delaunator::Delaunator* del;
 std::vector<double_pair_t> hull_verts;
 
-static std::unordered_map<ColorType, RGB> COLOR_MAP{};
+static std::unordered_map<ColorType, MyRGB> COLOR_MAP{};
 
 void set_pen_color(ColorType color_type)
 {
@@ -792,9 +800,11 @@ void set_pen_color(ColorType color_type)
         COLOR_MAP[ColorType::Coord] = {0, 0, 255};
         COLOR_MAP[ColorType::TriangleCenter] = {255, 115, 0};
         COLOR_MAP[ColorType::HullColor] = {0, 150, 0};
+
+        _colors_setup = true;
     }
 
-    RGB pen_color = COLOR_MAP.at(color_type);
+    MyRGB pen_color = COLOR_MAP.at(color_type);
     drawer.pen_color(pen_color.r, pen_color.g, pen_color.b);
 }
 
@@ -894,8 +904,6 @@ void forEachVoronoiCell(delaunator::Delaunator& delaunator,
             callback(triangle_id, vertices);
         }
     }
-
-
 
     set_pen_color(ColorType::HullColor);
     hull_verts.clear();
@@ -1115,7 +1123,7 @@ int main(int, char**)
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             ImGui::LabelText("Mouse Pos:", "%f %f", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
 
-            auto color_flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoPicker;
+            auto color_flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel ;
 
             std::vector<std::pair<ColorType, std::string>> color_names = {
                 {ColorType::TriangleEdge, std::string("Triangle Edge")},
@@ -1137,10 +1145,12 @@ int main(int, char**)
                 ImGui::BeginGroup();
                 ImVec4 color = ImVec4(0, 0, 0, 0);
                 auto rgb = &COLOR_MAP[color_name.first];
-                color.x = rgb->r/255.0;
-                color.y = rgb->g/255.0;
-                color.z = rgb->b/255.0;
-                ImGui::ColorEdit3(color_name.second.c_str(), (float*)&color, color_flags);
+                if (ImGui::ColorEdit3(color_name.second.c_str(), (float*)&rgb->rf, color_flags)) {
+                    my_print(L"color changed");
+                    rgb->r = rgb->rf * 255.0f;
+                    rgb->g = rgb->gf * 255.0f;
+                    rgb->b = rgb->bf * 255.0f;
+                }
                 ImGui::SameLine();
                 ImGui::Text(color_name.second.c_str());
                 ImGui::EndGroup();
