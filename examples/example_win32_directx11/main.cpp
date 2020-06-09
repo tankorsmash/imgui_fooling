@@ -36,6 +36,7 @@
 
 #define BEND(what) what.begin(), what.end()
 
+enum class ColorType;
 using coord_t = std::pair<int, int>;
 using edge_t = size_t;
 using v_double_t = std::vector<double>;
@@ -45,6 +46,7 @@ using v_double_pair_t = std::vector<double_pair_t>;
 static v_double_t ORIG_POINTS{};
 static int rng_seed = 12345;
 
+void set_pen_color(ColorType color_type);
 
 //josh
 struct ColorData
@@ -57,6 +59,22 @@ struct ColorData
 
     bool has_26 = false;
 };
+
+struct RGB
+{
+    unsigned char r, g, b;
+};
+enum class ColorType
+{
+    CellHighlight,
+    CellEdge,
+    CellCorner,
+    TriangleEdge,
+    TriangleCorner,
+    Coord,
+    TriangleCenter
+};
+
 
 struct PointData
 {
@@ -525,7 +543,7 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
         double y2 = del->coords[2 * del->triangles[i + 1] + 1]; //ty1
         double x3 = del->coords[2 * del->triangles[i + 2] + 0]; //tx2
         double y3 = del->coords[2 * del->triangles[i + 2] + 1]; //ty2
-        drawer->pen_color(255, 0, 0);
+        set_pen_color(ColorType::TriangleEdge);
         drawer->triangle( x1, y1, x2, y2, x3, y3 );
 
         drawer->pen_color(0, 0, 255);
@@ -533,6 +551,7 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
         //drawer->circle(center.first, center.second, 5);
 
         //draw the centers of each point bluish
+        set_pen_color(ColorType::TriangleCorner);
         drawer->circle(x1, y1, 5);
         drawer->circle(x2, y2, 5);
         drawer->circle(x3, y3, 5);
@@ -542,7 +561,7 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
 
     //draw the raw coords
     for (int i = 0; i < del->coords.size(); i+=2) {
-        drawer->pen_color(0, 255, 255);
+        set_pen_color(ColorType::Coord);
         auto x = del->coords[i];
         auto y = del->coords[i+1];
         drawer->circle(
@@ -758,6 +777,25 @@ static image_drawer drawer(canvas.image());
 static delaunator::Delaunator* del;
 std::vector<double_pair_t> hull_verts;
 
+static std::unordered_map<ColorType, RGB> COLOR_MAP{};
+
+void set_pen_color(ColorType color_type)
+{
+    static bool _colors_setup = false;
+    if (_colors_setup == false) {
+        COLOR_MAP[ColorType::CellHighlight] = {255, 0, 0};
+        COLOR_MAP[ColorType::CellEdge] = {255, 0, 0};
+        COLOR_MAP[ColorType::CellCorner] = {255, 100, 190};
+        COLOR_MAP[ColorType::TriangleEdge] = {200, 255, 0};
+        COLOR_MAP[ColorType::TriangleCorner] = {80, 255, 10};
+        COLOR_MAP[ColorType::Coord] = {0, 0, 255};
+        COLOR_MAP[ColorType::TriangleCenter] = {150, 150, 150};
+    }
+
+    RGB pen_color = COLOR_MAP.at(color_type);
+    drawer.pen_color(pen_color.r, pen_color.g, pen_color.b);
+}
+
 void draw_a_to_b(double_pair_t& a, double_pair_t& b) {
     //if (a.first > 10000 || a.second > 10000 || b.first > 10000 || b.second > 100000) {
     //    __debugbreak();
@@ -890,6 +928,7 @@ void regenerate_canvas()
     del = draw_del_points_to_canvas(points, &canvas, &drawer);
 };
 
+
 int main(int, char**)
 {
     // Create application window
@@ -973,7 +1012,7 @@ int main(int, char**)
          {
              for (edge_t i = 0; i < size; i += 1) {
                  for (edge_t j = 0; j < size; j += 1) {
-                     drawer.pen_color(0, 0, 0);
+                     set_pen_color(ColorType::CellHighlight);
                      draw_a_to_b(vertices[i], vertices[j]);
                  }
              }
@@ -996,10 +1035,10 @@ int main(int, char**)
                  b = vertices[0];
              }
 
-             drawer.pen_color(100, 255, 100);
+             set_pen_color(ColorType::CellEdge);
              draw_a_to_b(a, b);
 
-             drawer.pen_color(50, 255, 150);
+             set_pen_color(ColorType::CellCorner); //TODO better color for this
              drawer.circle(a.first, a.second, 5);
              drawer.circle(b.first, b.second, 5);
          }
