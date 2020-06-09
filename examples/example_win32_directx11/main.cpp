@@ -972,15 +972,12 @@ int main(int, char**)
          }
      };
      auto draw_vertices_coord = [](edge_t cell_id, std::vector<coord_t>& vertices) {
-         drawer.pen_color(cell_id * 10, 0, 0);
-
          auto size = vertices.size();
          if (size <= 1) {
              //my_print(L"skipping: num vertices: " + std::to_wstring(size));
              return;
          }
 
-         drawer.pen_color(cell_id * 5, 0, 255);
          for (unsigned int i = 0; i < size; i+=1) {
              if (i != size - 1){
                  draw_a_to_b(vertices[i], vertices[i + 1]);
