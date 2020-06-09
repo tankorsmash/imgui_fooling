@@ -519,33 +519,30 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
     canvas->image().set_all_channels(240, 240, 240);
 
     for (std::size_t i = 0; i < del->triangles.size(); i += 3) {
-        drawer->pen_color(255, 0, 0);
         double x1 = del->coords[2 * del->triangles[i + 0] + 0]; //tx0
         double y1 = del->coords[2 * del->triangles[i + 0] + 1]; //ty0
         double x2 = del->coords[2 * del->triangles[i + 1] + 0]; //tx1
         double y2 = del->coords[2 * del->triangles[i + 1] + 1]; //ty1
         double x3 = del->coords[2 * del->triangles[i + 2] + 0]; //tx2
         double y3 = del->coords[2 * del->triangles[i + 2] + 1]; //ty2
+        drawer->pen_color(255, 0, 0);
         drawer->triangle( x1, y1, x2, y2, x3, y3 );
 
-        drawer->pen_color(0, 0, 0);
+        drawer->pen_color(0, 0, 255);
         auto center = circumcenter(double_pair_t{x1, y1}, double_pair_t{x2, y2}, double_pair_t{x3, y3});
         //drawer->circle(center.first, center.second, 5);
 
         //draw the centers of each point bluish
-        drawer->pen_color(255, 0, 0);
         drawer->circle(x1, y1, 5);
-
-        drawer->pen_color(0, 255, 0);
         drawer->circle(x2, y2, 5);
-
-        drawer->pen_color(0, 0, 255);
         drawer->circle(x3, y3, 5);
 
     }
 
+
+    //draw the raw coords
     for (int i = 0; i < del->coords.size(); i+=2) {
-        drawer->pen_color(23, 255, 200);
+        drawer->pen_color(0, 255, 255);
         auto x = del->coords[i];
         auto y = del->coords[i+1];
         drawer->circle(
@@ -832,6 +829,17 @@ void forEachVoronoiCell(delaunator::Delaunator& delaunator,
             std::vector<edge_t> triangles{};
             std::transform(BEND(edges), std::back_inserter(triangles), triangleOfEdge);
 
+            std::vector<double> coords;
+            for (edge_t& tri_id: triangles) {
+
+                for (edge_t& edge_id : pointsOfTriangle(*del, tri_id)) {
+                    double x = del->coords[edge_id * 2];
+                    double y = del->coords[edge_id * 2 + 1];
+                    coords.push_back(x);
+                    coords.push_back(y);
+                }
+            }
+
             //for each triangle found, calculate the circumcenter
             std::vector<coord_t> vertices{};
             std::transform(
@@ -948,8 +956,8 @@ int main(int, char**)
          }
          if (is_valid) {
              for (edge_t i = 0; i < size; i += 1) {
-                 coord_t a = vertices[i];
-                 coord_t b = {0, 0};
+                 coord_t& a = vertices[i];
+                 coord_t& b = coord_t{0, 0};
                  if (i != size - 1) {
                      b = vertices[i + 1];
                  } else {
@@ -979,11 +987,21 @@ int main(int, char**)
          }
 
          for (unsigned int i = 0; i < size; i+=1) {
+             coord_t& a = vertices[i];
+             coord_t& b = coord_t{-1, -1};
+
              if (i != size - 1){
-                 draw_a_to_b(vertices[i], vertices[i + 1]);
+                 b = vertices[i + 1];
              } else {
-                 draw_a_to_b(vertices[i], vertices[0]);
+                 b = vertices[0];
              }
+
+             drawer.pen_color(100, 255, 100);
+             draw_a_to_b(a, b);
+
+             drawer.pen_color(50, 255, 150);
+             drawer.circle(a.first, a.second, 5);
+             drawer.circle(b.first, b.second, 5);
          }
      };
 
