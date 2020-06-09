@@ -72,7 +72,8 @@ enum class ColorType
     TriangleEdge,
     TriangleCorner,
     Coord,
-    TriangleCenter
+    TriangleCenter,
+    HullColor
 };
 
 
@@ -534,7 +535,7 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
     //v_double_t points2 = points;
     delaunator::Delaunator* del = new delaunator::Delaunator(points);
     canvas->image().clear();
-    canvas->image().set_all_channels(240, 240, 240);
+    canvas->image().set_all_channels(200, 200, 200);
 
     for (std::size_t i = 0; i < del->triangles.size(); i += 3) {
         double x1 = del->coords[2 * del->triangles[i + 0] + 0]; //tx0
@@ -552,9 +553,9 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
 
         //draw the centers of each point bluish
         set_pen_color(ColorType::TriangleCorner);
-        drawer->circle(x1, y1, 5);
-        drawer->circle(x2, y2, 5);
-        drawer->circle(x3, y3, 5);
+        drawer->circle(x1, y1, 8);
+        drawer->circle(x2, y2, 8);
+        drawer->circle(x3, y3, 8);
 
     }
 
@@ -565,7 +566,7 @@ delaunator::Delaunator* draw_del_points_to_canvas(const std::vector<double>& poi
         auto x = del->coords[i];
         auto y = del->coords[i+1];
         drawer->circle(
-            x, y, 3
+            x, y, 5
         );
     }
 
@@ -783,13 +784,14 @@ void set_pen_color(ColorType color_type)
 {
     static bool _colors_setup = false;
     if (_colors_setup == false) {
-        COLOR_MAP[ColorType::CellHighlight] = {255, 0, 0};
-        COLOR_MAP[ColorType::CellEdge] = {255, 0, 0};
+        COLOR_MAP[ColorType::CellHighlight] = {175, 94, 255};
+        COLOR_MAP[ColorType::CellEdge] = {94, 255, 255};
         COLOR_MAP[ColorType::CellCorner] = {255, 100, 190};
-        COLOR_MAP[ColorType::TriangleEdge] = {200, 255, 0};
+        COLOR_MAP[ColorType::TriangleEdge] = {255, 215, 94};
         COLOR_MAP[ColorType::TriangleCorner] = {80, 255, 10};
         COLOR_MAP[ColorType::Coord] = {0, 0, 255};
-        COLOR_MAP[ColorType::TriangleCenter] = {150, 150, 150};
+        COLOR_MAP[ColorType::TriangleCenter] = {255, 115, 0};
+        COLOR_MAP[ColorType::HullColor] = {0, 150, 0};
     }
 
     RGB pen_color = COLOR_MAP.at(color_type);
@@ -894,9 +896,8 @@ void forEachVoronoiCell(delaunator::Delaunator& delaunator,
     }
 
 
-    drawer.pen_color(0, 255, 0);
 
-
+    set_pen_color(ColorType::HullColor);
     hull_verts.clear();
     size_t e = del->hull_start;
     do {
@@ -923,7 +924,7 @@ void regenerate_canvas()
     color_data.green = new unsigned char[color_data.height*color_data.width];
     color_data.blue = new unsigned char[color_data.height*color_data.width];
 
-    int num_points = 250;
+    int num_points = 50;
     generate_points_for_del(width_height, color_data, num_points, points);
     del = draw_del_points_to_canvas(points, &canvas, &drawer);
 };
@@ -1113,9 +1114,47 @@ int main(int, char**)
 
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             ImGui::LabelText("Mouse Pos:", "%f %f", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
+
+            auto color_flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoPicker;
+
+            std::vector<std::pair<ColorType, std::string>> color_names = {
+                {ColorType::TriangleEdge, std::string("Triangle Edge")},
+                {ColorType::TriangleCenter, std::string("Triangle Center")},
+                {ColorType::CellEdge, std::string("Cell Edge")},
+                {ColorType::CellHighlight, std::string("Cell Highlight")},
+                {ColorType::Coord, std::string("Coord")},
+                {ColorType::TriangleCorner, std::string("Triangle Corner")},
+                {ColorType::HullColor, std::string("Hull Color")}
+            };
+
+            int i = 0;
+            for (auto& color_name : color_names) {
+                if (i % 3 != 0) {
+                    ImGui::SameLine();
+                }
+
+                ImGui::BeginGroup();
+                ImVec4 color = ImVec4(0, 0, 0, 0);
+                auto rgb = &COLOR_MAP[color_name.first];
+                color.x = rgb->r/255.0;
+                color.y = rgb->g/255.0;
+                color.z = rgb->b/255.0;
+                ImGui::ColorEdit3(color_name.second.c_str(), (float*)&color, color_flags);
+                ImGui::SameLine();
+                ImGui::Text(color_name.second.c_str());
+                ImGui::EndGroup();
+
+                i++;
+            }
+
             ImVec2 image_pos = window->DC.CursorPos;
             ImVec2 mouse_pos = ImVec2(ImGui::GetIO().MousePos.x - image_pos.x,  ImGui::GetIO().MousePos.y - image_pos.y);
             ImGui::Image((void*)TEXTURE_DATA->texture_id, ImVec2((float)TEXTURE_DATA->image_width, (float)TEXTURE_DATA->image_height));
+
+
+
+
+
             if (ImGui::IsItemHovered()) {
                 ImGui::LabelText("Mouse Pos", "%f %f", mouse_pos.x, mouse_pos.y);
 
