@@ -45,7 +45,13 @@ std::pair<double, double> triangleCenter(delaunator::Delaunator& delaunator, edg
 {
     auto tri_points = pointsOfTriangle(delaunator, tri_id);
     std::vector<std::pair<double, double>> vertices{};
-    std::transform(tri_points.begin(), tri_points.end(), std::back_inserter(vertices), [&delaunator](edge_t tri_point) { return double_pair_t{delaunator.coords.at(tri_point * 2), delaunator.coords.at(tri_point * 2 + 1)}; });
+    std::transform(tri_points.begin(), tri_points.end(), std::back_inserter(vertices),
+        [&delaunator](edge_t tri_point) {
+            return double_pair_t{
+                delaunator.coords.at(tri_point * 2),
+                delaunator.coords.at(tri_point * 2 + 1)
+            };
+        });
 
     //auto result = circumcenter(vertices[0], vertices[1], vertices[2]);
     auto result = delaunator::circumcenter(
