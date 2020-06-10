@@ -861,7 +861,7 @@ int pnpoly(int num_verts, double *vert_xs, double *vert_ys, double point_x, doub
 }
 
 void forEachVoronoiCell(delaunator::Delaunator& delaunator,
-    std::function<void(edge_t, std::vector<coord_t>&)> callback)
+    std::function<void(edge_t, v_double_pair_t&)> callback)
 {
 
     std::set<edge_t> seen_points;
@@ -880,12 +880,12 @@ void forEachVoronoiCell(delaunator::Delaunator& delaunator,
             std::transform(BEND(edges), std::back_inserter(triangles), triangleOfEdge);
 
             //for each triangle id, get its 3 corners in points
-            std::vector<double> coords;
+            std::vector<double*> coords;
             for (edge_t& tri_id: triangles) {
 
                 for (edge_t& point_id : pointsOfTriangle(*del, tri_id)) {
-                    double x = del->coords[point_id * 2];
-                    double y = del->coords[point_id * 2 + 1];
+                    double* x = &del->coords[point_id * 2];
+                    double* y = &del->coords[point_id * 2 + 1];
                     coords.push_back(x);
                     coords.push_back(y);
                 }
@@ -893,7 +893,7 @@ void forEachVoronoiCell(delaunator::Delaunator& delaunator,
 
             //for each triangle found, calculate the circumcenter, and use
             // that as a the polygon for this cell
-            std::vector<coord_t> vertices{};
+            v_double_pair_t vertices{};
             std::transform(
                 BEND(triangles), std::back_inserter(vertices),
                 [&delaunator](edge_t tri_id) {
@@ -901,6 +901,26 @@ void forEachVoronoiCell(delaunator::Delaunator& delaunator,
                     return result;
                 }
             );
+
+            double new_x = 0;
+            double new_y = 0;
+            for (auto& cell_corner: vertices) {
+                new_x = cell_corner.first;
+                new_y = cell_corner.second;
+            }
+            new_x /= (double)vertices.size();
+            new_y /= (double)vertices.size();
+            for (int i = 0; i < coords.size(); i+=2) {
+
+                double_pair_t point{del->coords[i], del->coords[i + 1]};
+                if (point_in_poly(vertices, del->coords[i], del->coords[i+1])) {
+                    
+                }
+                //*coords[i] = std::floor(new_x);
+                //*coords[i+2] = std::floor(new_y);
+                break;
+            }
+
 
             //draw the triangle
             callback(triangle_id, vertices);
@@ -981,7 +1001,7 @@ int main(int, char**)
 
     regenerate_canvas();
 
-     auto draw_vertices_coord_with_id = [](edge_t cell_id, std::vector<coord_t>& vertices, double point_id) {
+     auto draw_vertices_coord_with_id = [](edge_t cell_id, v_double_pair_t& vertices, double point_id) {
 
          auto size = vertices.size();
          if (size <= 2) {
@@ -1005,8 +1025,8 @@ int main(int, char**)
          }
          if (is_valid) {
              for (edge_t i = 0; i < size; i += 1) {
-                 coord_t& a = vertices[i];
-                 coord_t& b = coord_t{0, 0};
+                 double_pair_t& a = vertices[i];
+                 double_pair_t& b = double_pair_t{0, 0};
                  if (i != size - 1) {
                      b = vertices[i + 1];
                  } else {
@@ -1029,7 +1049,7 @@ int main(int, char**)
              }
          }
      };
-     auto draw_vertices_coord = [](edge_t cell_id, std::vector<coord_t>& vertices) {
+     auto draw_vertices_coord = [](edge_t cell_id, v_double_pair_t& vertices) {
          auto size = vertices.size();
          if (size <= 1) {
              //my_print(L"skipping: num vertices: " + std::to_wstring(size));
@@ -1037,8 +1057,8 @@ int main(int, char**)
          }
 
          for (unsigned int i = 0; i < size; i+=1) {
-             coord_t& a = vertices[i];
-             coord_t& b = coord_t{-1, -1};
+             double_pair_t& a = vertices[i];
+             double_pair_t& b = double_pair_t{-1, -1};
 
              if (i != size - 1){
                  b = vertices[i + 1];
@@ -1232,7 +1252,7 @@ int main(int, char**)
                                     canvas.image().clear();
                                     canvas.image().set_all_channels(100, 100, 100);
 
-                                    forEachVoronoiCell(*del, [&](edge_t edge_id, std::vector<coord_t>& vertices){
+                                    forEachVoronoiCell(*del, [&](edge_t edge_id, v_double_pair_t& vertices){
                                         draw_vertices_coord_with_id(edge_id, vertices, cell_id / 2);
                                     });
                                     TEXTURE_DATA = create_texture_data_from_image(&canvas.image());
