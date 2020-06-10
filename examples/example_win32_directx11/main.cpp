@@ -882,9 +882,9 @@ void forEachVoronoiCell(delaunator::Delaunator& delaunator,
             std::vector<double> coords;
             for (edge_t& tri_id: triangles) {
 
-                for (edge_t& edge_id : pointsOfTriangle(*del, tri_id)) {
-                    double x = del->coords[edge_id * 2];
-                    double y = del->coords[edge_id * 2 + 1];
+                for (edge_t& point_id : pointsOfTriangle(*del, tri_id)) {
+                    double x = del->coords[point_id * 2];
+                    double y = del->coords[point_id * 2 + 1];
                     coords.push_back(x);
                     coords.push_back(y);
                 }
