@@ -879,6 +879,7 @@ void forEachVoronoiCell(delaunator::Delaunator& delaunator,
             std::vector<edge_t> triangles{};
             std::transform(BEND(edges), std::back_inserter(triangles), triangleOfEdge);
 
+            //for each triangle id, get its 3 corners in points
             std::vector<double> coords;
             for (edge_t& tri_id: triangles) {
 
@@ -890,7 +891,8 @@ void forEachVoronoiCell(delaunator::Delaunator& delaunator,
                 }
             }
 
-            //for each triangle found, calculate the circumcenter
+            //for each triangle found, calculate the circumcenter, and use
+            // that as a the polygon for this cell
             std::vector<coord_t> vertices{};
             std::transform(
                 BEND(triangles), std::back_inserter(vertices),
